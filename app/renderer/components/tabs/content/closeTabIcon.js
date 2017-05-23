@@ -9,9 +9,6 @@ const {StyleSheet, css} = require('aphrodite/no-important')
 const ImmutableComponent = require('../../immutableComponent')
 const TabIcon = require('./tabIcon')
 
-// Utils
-const {hasRelativeCloseIcon, hasFixedCloseIcon} = require('../../../lib/tabUtil')
-
 // Styles
 const globalStyles = require('../../styles/global')
 const closeTabHoverSvg = require('../../../../extensions/brave/img/tabs/close_btn_hover.svg')
@@ -23,13 +20,12 @@ class CloseTabIcon extends ImmutableComponent {
   }
 
   render () {
-    return !this.isPinned &&
-    (hasRelativeCloseIcon(this.props) || hasFixedCloseIcon(this.props))
-      ? <TabIcon
+    return (
+      <TabIcon
         data-test-id='closeTabIcon'
         className={css(styles.closeTab)}
         {...this.props} />
-      : null
+    )
   }
 }
 

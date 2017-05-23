@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     height: globalStyles.spacing.tabHeight,
     marginTop: '0',
-    transition: `transform 200ms ease, ${globalStyles.transition.tabBackgroundTransition}`,
+    transition: `background 300ms ease, ${globalStyles.transition.tabBackgroundTransition}`,
     left: '0',
     opacity: '1',
     width: '100%',
@@ -28,9 +28,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: globalStyles.spacing.defaultTabPadding,
     position: 'relative',
+    background: 'transparent',
 
     ':hover': {
-      background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.8), rgba(250, 250, 250, 0.4))'
+      background: '#efefef'
     }
   },
 
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
   },
 
   active: {
-    background: `rgba(255, 255, 255, 1.0)`,
+    background: `${globalStyles.color.chromePrimary}`,
     height: globalStyles.spacing.tabHeight,
     marginTop: '0',
     borderWidth: '0 1px 0 0',
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
     borderColor: '#bbb',
     color: '#000',
     ':hover': {
-      background: `linear-gradient(to bottom, #fff, ${globalStyles.color.chromePrimary})`
+      background: `${globalStyles.color.chromePrimary}`
     }
   },
 
