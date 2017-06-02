@@ -117,6 +117,7 @@ const createWindow = (action) => {
   let browserOpts = (action.browserOpts && action.browserOpts.toJS()) || {}
   const windowState = action.restoredState || {}
   const defaults = windowDefaults()
+  const {identity} = browserOpts
 
   browserOpts = setWindowDimensions(browserOpts, defaults, windowState)
   browserOpts = setWindowPosition(browserOpts, defaults, windowState)
@@ -240,7 +241,15 @@ const createWindow = (action) => {
           disposition: frameOpts.disposition,
           id: mainWindow.id
         },
-        appState.toJS(),
+        /*****************************************************************
+         *****************************************************************
+         * Start Mirage ID
+         *****************************************************************/
+        Object.assign({}, appState.toJS(), {identity}),
+        /*****************************************************************
+         * End Mirage ID
+         *****************************************************************
+         *****************************************************************/
         frames,
         action.restoredState)
       if (action.cb) {

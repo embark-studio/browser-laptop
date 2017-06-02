@@ -44,6 +44,7 @@ module.exports = {
     replacementUrl: adHost
   },
   braveExtensionId: 'mnojpmjdmbbfmejpflffifhffcmidifd',
+  mirageIDExtensionId: 'fypgwjrwvqiaruzrhtqhqowjvaqwmbow',
   torrentExtensionId: 'fmdpfempfmekjkcfdehndghogpnpjeno',
   syncExtensionId: 'cjnmeadmgmiihncdidmfiabhenbggfjm',
   PDFJSExtensionId: 'jdbefljfgobbmcidnmpjamcbhnbphjnb',

@@ -102,7 +102,6 @@ if (isDarwin) {
     if (err) {
       console.error('buildInstaller failed', err)
       process.exit(1)
-      return
     }
     console.log('done')
   })

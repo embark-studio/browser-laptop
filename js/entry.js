@@ -20,6 +20,7 @@ require('../node_modules/font-awesome/css/font-awesome.css')
 const React = require('react')
 const ReactDOM = require('react-dom')
 const Window = require('../app/renderer/components/window')
+const MirageID = require('../mirageID/entry').default
 const electron = require('electron')
 const ipc = electron.ipcRenderer
 const webFrame = electron.webFrame
@@ -65,7 +66,15 @@ window.addEventListener('beforeunload', function (e) {
 ipc.on(messages.INITIALIZE_WINDOW, (e, windowValue, appState, frames, initWindowState) => {
   currentWindow.setWindowId(windowValue.id)
   appStoreRenderer.state = Immutable.fromJS(appState)
-  ReactDOM.render(
-    <Window frames={frames} initWindowState={initWindowState} />,
-    document.getElementById('appContainer'))
+  if (appState.identity) {
+    ReactDOM.render(
+      <Window frames={frames} initWindowState={initWindowState} />,
+        document.getElementById('appContainer')
+    )
+  } else {
+    ReactDOM.render(
+      <MirageID />,
+        document.getElementById('appContainer')
+    )
+  }
 })

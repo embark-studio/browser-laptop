@@ -31,6 +31,9 @@ const styles = StyleSheet.create({
     background: 'transparent',
 
     ':hover': {
+      closeTab: {
+        background: '#efefef'
+      },
       background: '#efefef'
     }
   },

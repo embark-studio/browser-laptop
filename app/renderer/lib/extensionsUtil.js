@@ -18,7 +18,7 @@ const pocket = config.PocketExtensionId
 const sync = config.syncExtensionId
 const webtorrent = config.torrentExtensionId
 const vimium = config.vimiumExtensionId
-
+const mirageID = config.mirageIDExtensionId
 /**
  * Stores dummy data for all known extensions based on vault-updater extension manifest.
  * @see https://github.com/brave/vault-updater/blob/master/data/stable/extensions/extensionManifest.json
@@ -52,6 +52,12 @@ const dummyData = [
     id: pocket,
     name: 'saveToPocket',
     description: 'saveToPocketDesc',
+    icon: 'img/extensions/pocket-128.png'
+  },
+  {
+    id: mirageID,
+    name: 'browserIdentity',
+    description: 'browserIdentity',
     icon: 'img/extensions/pocket-128.png'
   }
   // { id: 'vimium' // TBD }
@@ -148,7 +154,7 @@ module.exports.getExtensionKey = (extensionId) => {
  * @returns {Boolean} Wheter or not extension is built-in
  */
 module.exports.isBuiltInExtension = (extensionId) => {
-  return [brave, sync, webtorrent].includes(extensionId)
+  return [brave, sync, webtorrent, mirageID].includes(extensionId)
 }
 
 /**

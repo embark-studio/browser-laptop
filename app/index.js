@@ -342,15 +342,24 @@ app.on('ready', () => {
     AdInsertion.init()
     PDFJS.init()
 
-    if (!loadedPerWindowState || loadedPerWindowState.length === 0) {
-      if (!CmdLine.newWindowURL()) {
-        appActions.newWindow()
-      }
-    } else {
-      loadedPerWindowState.forEach((wndState) => {
-        appActions.newWindow(undefined, undefined, wndState)
-      })
-    }
+    /**************************************************************
+     **************************************************************
+     * MIRAGE ID START
+     **************************************************************/
+      /* if (!loadedPerWindowState || loadedPerWindowState.length === 0) {
+          if (!CmdLine.newWindowURL()) {
+            appActions.newWindow()
+          }
+        } else {
+          loadedPerWindowState.forEach((wndState) => {
+            appActions.newWindow(undefined, undefined, wndState)
+          })
+        } */
+    appActions.newWindow()
+    /**************************************************************
+     * END MIRAGE ID
+     **************************************************************
+     **************************************************************/
     process.emit(messages.APP_INITIALIZED)
 
     if (process.env.BRAVE_IS_DEFAULT_BROWSER !== undefined) {

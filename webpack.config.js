@@ -159,6 +159,7 @@ var webtorrentPage = {
 }
 
 const envConfig = eval(env)  // eslint-disable-line
+
 module.exports = [
   merge(app, envConfig()),
   merge(devTools, envConfig()),

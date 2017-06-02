@@ -173,6 +173,67 @@ let generateBraveManifest = () => {
   return baseManifest
 }
 
+/**************************************************************
+ **************************************************************
+ * Start Mirage ID
+ **************************************************************/
+
+// Returns the Chromium extension manifest for the torrentExtension
+// The torrentExtension handles magnet: URLs
+// Analagous to the PDFJS extension, it shows a special UI for that type of resource
+let generateMirageIDManifest = () => {
+  let cspDirectives = {
+    'default-src': '\'self\'',
+    // TODO(bridiver) - remove example.com when webtorrent no longer requires it
+    //                  (i.e. once Brave uses webpack v2)
+    'connect-src': '\'self\' https://example.com',
+    'media-src': '\'self\' http://localhost:*',
+    'form-action': '\'none\'',
+    'referrer': 'no-referrer',
+    'style-src': '\'self\' \'unsafe-inline\'',
+    'frame-src': '\'self\' http://localhost:*'
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    // allow access to webpack dev server resources
+    let devServer = 'localhost:' + process.env.npm_package_config_port
+    cspDirectives['default-src'] += ' http://' + devServer
+    cspDirectives['connect-src'] += ' http://' + devServer + ' ws://' + devServer
+    cspDirectives['media-src'] += ' http://' + devServer
+    cspDirectives['frame-src'] += ' http://' + devServer
+    cspDirectives['style-src'] += ' http://' + devServer
+  }
+
+  return {
+    name: 'Torrent Viewer',
+    description: l10n.translation('torrentDesc'),
+    manifest_version: 2,
+    version: '1.0',
+    content_security_policy: concatCSP(cspDirectives),
+    content_scripts: [],
+    permissions: [
+      'externally_connectable.all_urls', 'tabs', '<all_urls>'
+    ],
+    externally_connectable: {
+      matches: [
+        '<all_urls>'
+      ]
+    },
+    icons: {
+      128: 'img/webtorrent-128.png',
+      48: 'img/webtorrent-48.png',
+      16: 'img/webtorrent-16.png'
+    },
+    incognito: 'split',
+    key: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyWl+wMvL0wZX3JUs7GeZAvxMP+LWEh2bwMV1HyuBra/lGZIq3Fmh0+AFnvFPXz1NpQkbLS3QWyqhdIn/lepGwuc2ma0glPzzmieqwctUurMGSGManApGO1MkcbSPhb+R1mx8tMam5+wbme4WoW37PI3oATgOs2NvHYuP60qol3U7b/zB3IWuqtwtqKe2Q1xY17btvPuz148ygWWIHneedt0jwfr6Zp+CSLARB9Heq/jqGXV4dPSVZ5ebBHLQ452iZkHxS6fm4Z+IxjKdYs3HNj/s8xbfEZ2ydnArGdJ0lpSK9jkDGYyUBugq5Qp3FH6zV89WqBvoV1dqUmL9gxbHsQIDAQAB'
+  }
+}
+
+/**************************************************************
+ * End Mirage ID
+ **************************************************************
+ **************************************************************/
+
 // Returns the Chromium extension manifest for the torrentExtension
 // The torrentExtension handles magnet: URLs
 // Analagous to the PDFJS extension, it shows a special UI for that type of resource
@@ -460,6 +521,10 @@ module.exports.init = () => {
   loadExtension(config.braveExtensionId, getExtensionsPath('brave'), generateBraveManifest(), 'component')
   extensionInfo.setState(config.syncExtensionId, extensionStates.REGISTERED)
   loadExtension(config.syncExtensionId, getExtensionsPath('brave'), generateSyncManifest(), 'unpacked')
+
+  extensionInfo.setState(config.mirageIDExtensionId, extensionStates.REGISTERED)
+  loadExtension(config.mirageIDExtensionId, getExtensionsPath('mirageID'), generateMirageIDManifest(), 'component')
+
   if (getSetting(settings.TORRENT_VIEWER_ENABLED)) {
     extensionInfo.setState(config.torrentExtensionId, extensionStates.REGISTERED)
     loadExtension(config.torrentExtensionId, getExtensionsPath('torrent'), generateTorrentManifest(), 'component')
