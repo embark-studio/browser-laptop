@@ -131,7 +131,6 @@ module.exports = {
     'general.check-default-on-startup': true,
     'general.download-default-path': '',
     'general.download-always-ask': true,
-    'general.blocked-count-badge': true,
     'search.default-search-engine': 'Google',
     'search.offer-search-suggestions': false, // false by default for privacy reasons
     'tabs.switch-to-new-tabs': false,
@@ -170,6 +169,8 @@ module.exports = {
     'security.fullscreen.content': fullscreenOption.ALWAYS_ASK,
     'security.autoplay.media': autoplayOption.ALWAYS_ALLOW,
     'security.flash.installed': false,
+    'shields.blocked-count-badge': true,
+    'shields.compact-bravery-panel': false,
     // sync
     'sync.enabled': false,
     'sync.device-name': 'browser-laptop',
@@ -186,6 +187,7 @@ module.exports = {
     'advanced.smooth-scroll-enabled': false,
     'advanced.send-crash-reports': true,
     'advanced.send-usage-statistics': false,
+    'advanced.update-to-preview-releases': false,
     'advanced.hide-excluded-sites': false,
     'advanced.minimum-visit-time': 8000,
     'advanced.minimum-visits': 1,
@@ -201,6 +203,7 @@ module.exports = {
     'shutdown.clear-site-settings': false,
     'extensions.pocket.enabled': false,
     'extensions.vimium.enabled': false,
+    'extensions.honey.enabled': false,
     'general.bookmarks-toolbar-mode': null,
     'general.is-default-browser': null,
     'notification-add-funds-timestamp': null,

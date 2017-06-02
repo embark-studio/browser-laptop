@@ -19,11 +19,11 @@ const ipc = window.chrome.ipcRenderer
 
 // Stylesheets
 require('../../less/switchControls.less')
-require('../../less/about/adblock.less')
+require('../../less/about/common.less')
 
 class AdBlockItem extends ImmutableComponent {
-  constructor () {
-    super()
+  constructor (props) {
+    super(props)
     this.onClick = this.onClick.bind(this)
   }
   onClick (e) {
@@ -37,6 +37,7 @@ class AdBlockItem extends ImmutableComponent {
       <SwitchControl id={this.props.resource.get('uuid')}
         rightText={this.props.resource.get('title')}
         className={`switch-${this.props.resource.get('uuid')}`}
+        customRightTextClassName={css(styles.adblockLists__adblockItem__switchControl)}
         disabled={this.props.disabled}
         onClick={this.onClick}
         checkedOn={getSetting(this.prefKey, this.props.settings)} />
@@ -45,8 +46,8 @@ class AdBlockItem extends ImmutableComponent {
 }
 
 class AboutAdBlock extends React.Component {
-  constructor () {
-    super()
+  constructor (props) {
+    super(props)
     this.onChangeCustomFilters = this.onChangeCustomFilters.bind(this)
     this.state = {
       adblock: Immutable.Map(),
@@ -127,9 +128,15 @@ const styles = StyleSheet.create({
   adblockDetailsPageContent: {
     marginBottom: '10px'
   },
+
   adblockLists: {
     marginTop: '10px'
   },
+  adblockLists__adblockItem__switchControl: {
+    // TODO: refactor switchControl to remove !important
+    marginLeft: '15px !important'
+  },
+
   adblockSubtext: {
     fontSize: 'smaller',
     fontWeight: 'bold',

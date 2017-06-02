@@ -3,8 +3,6 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 const React = require('react')
-const remote = require('electron').remote
-const path = require('path')
 const {StyleSheet, css} = require('aphrodite/no-important')
 
 // Components
@@ -79,7 +77,7 @@ class UpdateHide extends ImmutableComponent {
 
 class UpdateLog extends ImmutableComponent {
   onViewLog () {
-    remote.shell.openItem(path.join(remote.app.getPath('userData'), 'updateLog.log'))
+    appActions.updateLogOpened()
   }
   render () {
     return <BrowserButton notificationItem secondaryColor

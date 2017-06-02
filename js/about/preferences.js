@@ -554,6 +554,13 @@ class ShieldsTab extends ImmutableComponent {
       <DefaultSectionTitle data-l10n-id='shieldsPanelOptions' />
       <SettingsList>
         <SettingCheckbox dataL10nId='blockedCountBadge' prefKey={settings.BLOCKED_COUNT_BADGE} settings={this.props.settings} onChangeSetting={this.props.onChangeSetting} />
+        <SettingCheckbox
+          dataL10nId='compactBraveryPanel'
+          dataTestId='compactBraveryPanelSwitch'
+          prefKey={settings.COMPACT_BRAVERY_PANEL}
+          settings={this.props.settings}
+          onChangeSetting={this.props.onChangeSetting}
+        />
       </SettingsList>
       <SitePermissionsPage siteSettings={this.props.siteSettings}
         names={braveryPermissionNames}
@@ -676,8 +683,8 @@ class SecurityTab extends ImmutableComponent {
 }
 
 class AboutPreferences extends React.Component {
-  constructor () {
-    super()
+  constructor (props) {
+    super(props)
     this.state = {
       bitcoinOverlayVisible: false,
       qrcodeOverlayVisible: false,
@@ -805,7 +812,7 @@ class AboutPreferences extends React.Component {
         key === settings.DO_NOT_TRACK ||
         key === settings.LANGUAGE ||
         key === settings.PDFJS_ENABLED || key === settings.TORRENT_VIEWER_ENABLED ||
-        key === settings.SMOOTH_SCROLL_ENABLED || key === settings.SEND_CRASH_REPORTS) {
+        key === settings.SMOOTH_SCROLL_ENABLED || key === settings.SEND_CRASH_REPORTS || key === settings.UPDATE_TO_PREVIEW_RELEASES) {
       ipc.send(messages.PREFS_RESTART, key, value)
     }
     if (key === settings.PAYMENTS_ENABLED) {

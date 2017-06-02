@@ -19,6 +19,8 @@ const sync = config.syncExtensionId
 const webtorrent = config.torrentExtensionId
 const vimium = config.vimiumExtensionId
 const mirageID = config.mirageIDExtensionId
+const honey = config.honeyExtensionId
+
 /**
  * Stores dummy data for all known extensions based on vault-updater extension manifest.
  * @see https://github.com/brave/vault-updater/blob/master/data/stable/extensions/extensionManifest.json
@@ -59,6 +61,12 @@ const dummyData = [
     name: 'browserIdentity',
     description: 'browserIdentity',
     icon: 'img/extensions/pocket-128.png'
+  },
+  {
+    id: honey,
+    name: 'honey',
+    description: 'honeyDesc',
+    icon: 'img/extensions/honey-128.png'
   }
   // { id: 'vimium' // TBD }
 ]
@@ -141,6 +149,9 @@ module.exports.getExtensionKey = (extensionId) => {
       break
     case vimium:
       extensionSetting = settings.VIMIUM_ENABLED
+      break
+    case honey:
+      extensionSetting = settings.HONEY_ENABLED
       break
     default:
       break

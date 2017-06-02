@@ -13,7 +13,7 @@ require('../../less/forms.less')
 
 const {Textbox, FormTextbox, SettingTextbox, RecoveryKeyTextbox} = require('../../app/renderer/components/common/textbox')
 const {TextArea, DefaultTextArea} = require('../../app/renderer/components/common/textbox')
-const {Dropdown, FormDropdown, SettingDropdown} = require('../../app/renderer/components/common/dropdown')
+const {Dropdown, FormDropdown, SettingDropdown, BraveryPanelDropdown} = require('../../app/renderer/components/common/dropdown')
 const BrowserButton = require('../../app/renderer/components/common/browserButton')
 
 const {
@@ -227,6 +227,23 @@ class AboutStyle extends ImmutableComponent {
           </Code></Pre>
         </Container>
 
+        <Container>
+          <h2>Dropdown used mostly on Bravery Panel; has 100% width and 13px font size</h2>
+          <BraveryPanelDropdown>
+            <option>Select Box</option>
+            <option>Second Choice</option>
+            <option>Third Choice</option>
+          </BraveryPanelDropdown>
+          <Pre><Code>
+            const { '{BraveryPanelDropdown}' } = require('../../app/renderer/components/common/dropdown'){'\n'}
+            &lt;BraveryPanelDropdown>{'\n'}
+            &nbsp;&nbsp;&lt;option>Select Box&lt;/option>{'\n'}
+            &nbsp;&nbsp;&lt;option>Second Choice&lt;/option>{'\n'}
+            &nbsp;&nbsp;&lt;option>Third Choice&lt;/option>{'\n'}
+            &lt;/BraveryPanelDropdown>
+          </Code></Pre>
+        </Container>
+
         <GoTop />
       </div>
 
@@ -272,20 +289,17 @@ class AboutStyle extends ImmutableComponent {
           onClick={'{this.onRemoveBookmark}'} />
         </Code></Pre>
 
-        <button data-l10n-id='subtleButton' className='browserButton subtleButton' onClick={this.onRemoveBookmark} />
+        <BrowserButton subtleItem l10nId='subtleButton' onClick={this.onRemoveBookmark} />
         <Pre><Code>
-          &lt;button data-l10n-id='cancel' className='browserButton subtleButton'{'\n'}
-          onClick={'{this.onRemoveBookmark}'} />
+          &lt;BrowserButton subtleItem l10nId='cancel' onClick={'{this.onRemoveBookmark}'} />
         </Code></Pre>
 
         <BrowserButton primaryColor groupedItem l10nId='primaryButton' onClick={this.onRemoveBookmark} />
         <BrowserButton secondaryColor groupedItem l10nId='whiteButton' onClick={this.onRemoveBookmark} />
-        <BrowserButton secondaryColor groupedItem l10nId='wideButton' onClick={this.onRemoveBookmark} />
         <BrowserButton primaryColor groupedItem l10nId='primaryButton' onClick={this.onRemoveBookmark} />
         <Pre><Code>
-          &lt;BrowserButton primaryColor groupedItem l10nId='cancel' onClick={'{this.onRemoveBookmark}'} />
-          &lt;BrowserButton secondaryColor groupedItem l10nId='cancel' onClick={'{this.onRemoveBookmark}'} />
-          &lt;BrowserButton secondaryColor groupedItem wideItem l10nId='cancel' onClick={'{this.onRemoveBookmark}'} />
+          &lt;BrowserButton primaryColor groupedItem l10nId='cancel' onClick={'{this.onRemoveBookmark}'} />{'\n'}
+          &lt;BrowserButton secondaryColor groupedItem l10nId='cancel' onClick={'{this.onRemoveBookmark}'} />{'\n'}
           &lt;BrowserButton primaryColor groupedItem l10nId='cancel' onClick={'{this.onRemoveBookmark}'} />
         </Code></Pre>
 

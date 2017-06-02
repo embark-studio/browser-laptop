@@ -98,16 +98,16 @@ const addToHistory = (frameProps) => {
   return history.slice(-10)
 }
 
-const newFrame = (state, frameOpts, openInForeground, insertionIndex, nextKey) => {
+const newFrame = (state, frameOpts, openInForeground) => {
   if (frameOpts === undefined) {
     frameOpts = {}
   }
   frameOpts = frameOpts.toJS ? frameOpts.toJS() : frameOpts
 
   // handle tabs.create properties
-  insertionIndex = frameOpts.index !== undefined
+  let insertionIndex = frameOpts.index !== undefined
     ? frameOpts.index
-    : insertionIndex
+    : undefined
 
   if (frameOpts.partition) {
     frameOpts.isPrivate = frameStateUtil.isPrivatePartition(frameOpts.partition)
@@ -121,7 +121,8 @@ const newFrame = (state, frameOpts, openInForeground, insertionIndex, nextKey) =
     openInForeground = frameOpts.disposition !== 'background-tab'
   }
 
-  if (openInForeground === undefined) {
+  const activeFrame = frameStateUtil.getActiveFrame(state)
+  if (openInForeground === undefined || !activeFrame) {
     openInForeground = true
   }
 
@@ -172,22 +173,21 @@ const newFrame = (state, frameOpts, openInForeground, insertionIndex, nextKey) =
     insertionIndex = 0
   }
 
-  if (nextKey === undefined) {
-    nextKey = incrementNextKey()
-  }
+  const nextKey = incrementNextKey()
 
   state = state.merge(
     frameStateUtil.addFrame(
       state, frameOpts,
-      nextKey, frameOpts.partitionNumber, openInForeground || typeof state.get('activeFrameKey') !== 'number' ? nextKey : state.get('activeFrameKey'), insertionIndex))
+      nextKey, frameOpts.partitionNumber, openInForeground, insertionIndex))
 
   state = frameStateUtil.updateFramesInternalIndex(state, insertionIndex)
 
   if (openInForeground) {
     const activeFrame = frameStateUtil.getActiveFrame(state)
+    const tabId = activeFrame.get('tabId')
     state = updateTabPageIndex(state, activeFrame)
-    if (activeFrame.get('tabId')) {
-      appActions.tabActivateRequested(activeFrame.get('tabId'))
+    if (tabId) {
+      appActions.tabActivateRequested(tabId)
     }
   }
 
@@ -351,8 +351,10 @@ const doAction = (action) => {
       break
     case windowConstants.WINDOW_SET_PREVIEW_FRAME:
       windowState = windowState.merge({
-        previewFrameKey: action.frameKey != null && action.frameKey !== windowState.get('activeFrameKey')
-          ? action.frameKey : null
+        previewFrameKey:
+          action.frameKey != null && !frameStateUtil.isFrameKeyActive(windowState, action.frameKey)
+          ? action.frameKey
+          : null
       })
       break
     case windowConstants.WINDOW_SET_PREVIEW_TAB_PAGE_INDEX:
@@ -376,13 +378,17 @@ const doAction = (action) => {
           break
         }
         const frameIndex = frameStateUtil.getFrameIndex(windowState, action.frameKey)
-        windowState = windowState.setIn(['frames', frameIndex, 'breakpoint'], action.breakpoint)
+        if (frameIndex !== -1) {
+          windowState = windowState.setIn(['frames', frameIndex, 'breakpoint'], action.breakpoint)
+        }
         break
       }
     case windowConstants.WINDOW_SET_TAB_HOVER_STATE:
       {
         const frameIndex = frameStateUtil.getFrameIndex(windowState, action.frameKey)
-        windowState = windowState.setIn(['frames', frameIndex, 'hoverState'], action.hoverState)
+        if (frameIndex !== -1) {
+          windowState = windowState.setIn(['frames', frameIndex, 'hoverState'], action.hoverState)
+        }
         break
       }
     case windowConstants.WINDOW_TAB_MOVE:
@@ -428,7 +434,9 @@ const doAction = (action) => {
     case windowConstants.WINDOW_SET_FIND_DETAIL:
       {
         const frameIndex = frameStateUtil.getFrameIndex(windowState, action.frameKey)
-        windowState = windowState.mergeIn(['frames', frameIndex, 'findDetail'], action.findDetail)
+        if (frameIndex !== -1) {
+          windowState = windowState.mergeIn(['frames', frameIndex, 'findDetail'], action.findDetail)
+        }
         break
       }
     case windowConstants.WINDOW_SET_BOOKMARK_DETAIL:

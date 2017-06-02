@@ -4,7 +4,6 @@
 
 const Immutable = require('immutable')
 const config = require('../constants/config')
-const {tabCloseAction} = require('../../app/common/constants/settingsEnums')
 const {makeImmutable} = require('../../app/common/state/immutableUtil')
 const {isIntermediateAboutPage} = require('../lib/appUrlUtil')
 const urlParse = require('../../app/common/urlParse')
@@ -201,13 +200,6 @@ function getActiveFrameKey (state) {
   return state.get('activeFrameKey')
 }
 
-function setActiveFrameKey (state, activeFrameKey) {
-  return state.merge({
-    activeFrameKey: activeFrameKey,
-    previewFrameKey: null
-  })
-}
-
 function getNextFrame (state) {
   const activeFrameIndex = findDisplayIndexForFrameKey(state, getActiveFrameKey(state))
   const index = (activeFrameIndex + 1) % state.get('frames').size
@@ -225,23 +217,6 @@ function getPreviousFrame (state) {
  */
 function findDisplayIndexForFrameKey (state, key) {
   return getFrameKeysByDisplayIndex(state).findIndex((displayKey) => displayKey === key)
-}
-
-/**
- * Find frame that was accessed last
- */
-function getFrameByLastAccessedTime (state) {
-  const frameProps = state.get('frames').toJS()
-    .reduce((pre, cur) => {
-      return ([undefined, null].includes(cur.pinnedLocation) &&
-        cur.lastAccessedTime &&
-        cur.lastAccessedTime > pre.lastAccessedTime
-      ) ? cur : pre
-    }, {
-      lastAccessedTime: 0
-    })
-
-  return (frameProps.lastAccessedTime === 0) ? -1 : getFrameIndex(state, frameProps.key)
 }
 
 /**
@@ -309,6 +284,7 @@ const frameOptsFromFrame = (frame) => {
     .delete('parentFrameKey')
     .delete('activeShortcut')
     .delete('activeShortcutDetails')
+    .delete('index')
     .deleteIn(['navbar', 'urlbar', 'suggestions'])
 }
 
@@ -316,7 +292,7 @@ const frameOptsFromFrame = (frame) => {
  * Adds a frame specified by frameOpts and newKey and sets the activeFrameKey
  * @return Immutable top level application state ready to merge back in
  */
-function addFrame (state, frameOpts, newKey, partitionNumber, activeFrameKey, insertionIndex) {
+function addFrame (state, frameOpts, newKey, partitionNumber, openInForeground, insertionIndex) {
   const frames = state.get('frames')
   const url = frameOpts.location || config.defaultUrl
 
@@ -349,7 +325,7 @@ function addFrame (state, frameOpts, newKey, partitionNumber, activeFrameKey, in
     loading: !!delayedLoadUrl,
     startLoadTime: delayedLoadUrl ? new Date().getTime() : null,
     endLoadTime: null,
-    lastAccessedTime: (activeFrameKey === newKey) ? new Date().getTime() : null,
+    lastAccessedTime: openInForeground ? new Date().getTime() : null,
     isPrivate: false,
     partitionNumber,
     pinnedLocation: isPinned ? url : undefined,
@@ -381,53 +357,25 @@ function addFrame (state, frameOpts, newKey, partitionNumber, activeFrameKey, in
     history: []
   }, frameOpts))
 
-  return {
-    frames: frames.splice(insertionIndex, 0, frame),
-    activeFrameKey
+  const result = {
+    frames: frames.splice(insertionIndex, 0, frame)
   }
+
+  if (openInForeground) {
+    result.activeFrameKey = newKey
+  }
+
+  return result
 }
 
 /**
  * Removes a frame specified by frameProps
  * @return Immutable top level application state ready to merge back in
  */
-function removeFrame (state, frameProps, activeFrameKey, framePropsIndex, closeAction) {
-  function getNewActiveFrame (activeFrameIndex) {
-    // Go to the next frame if it exists.
-    let index = activeFrameIndex
-    let nextFrame = newFrames.get(index)
-    do {
-      if (nextFrame) {
-        if (nextFrame.get('pinnedLocation') === undefined) {
-          return nextFrame.get('key')
-        }
-        nextFrame = newFrames.get(++index)
-      }
-    } while (nextFrame)
-    // Otherwise go to the frame right before the active tab.
-    index = activeFrameIndex
-    while (index > 0) {
-      const prevFrame = newFrames.get(--index)
-      if (prevFrame && prevFrame.get('pinnedLocation') === undefined) {
-        return prevFrame.get('key')
-      }
-    }
-
-    // Fall back on the original logic.
-    nextFrame = newFrames.get(activeFrameIndex)
-    if (!nextFrame) {
-      nextFrame = newFrames.get(activeFrameIndex - 1)
-    }
-    if (!nextFrame) {
-      nextFrame = newFrames.get(0)
-    }
-    return nextFrame.get('key')
-  }
-
+function removeFrame (state, frameProps, framePropsIndex) {
   const frames = state.get('frames')
   let closedFrames = state.get('closedFrames')
   const newFrames = frames.splice(framePropsIndex, 1)
-  let newActiveFrameKey = activeFrameKey
 
   if (!frameProps.get('isPrivate') && frameProps.get('location') !== 'about:newtab') {
     frameProps = frameProps.set('isFullScreen', false)
@@ -440,33 +388,8 @@ function removeFrame (state, frameProps, activeFrameKey, framePropsIndex, closeA
     }
   }
 
-  // If the frame being removed IS ACTIVE
-  let isActiveFrameBeingRemoved = frameProps.get('key') === activeFrameKey
-  if (isActiveFrameBeingRemoved && newFrames.size > 0) {
-    let activeFrameIndex
-
-    switch (closeAction) {
-      case tabCloseAction.LAST_ACTIVE:
-        const lastActive = getFrameByLastAccessedTime(state)
-        activeFrameIndex = (lastActive > -1) ? lastActive : frames.count() - 1
-        break
-      case tabCloseAction.NEXT:
-        activeFrameIndex = ((frames.count() - 1) === framePropsIndex) ? (framePropsIndex - 1) : framePropsIndex
-        break
-      // Default is a parent tab
-      default:
-        let parentFrameIndex = getFrameIndex(state, frameProps.get('parentFrameKey'))
-        activeFrameIndex = (parentFrameIndex === -1) ? getFrameIndex(state, activeFrameKey) : parentFrameIndex
-        break
-    }
-
-    // let's find new active NON-PINNED frame.
-    newActiveFrameKey = getNewActiveFrame(activeFrameIndex)
-  }
-
   return {
     previewFrameKey: null,
-    activeFrameKey: newActiveFrameKey,
     closedFrames,
     frames: newFrames
   }
@@ -520,34 +443,27 @@ const activeFrameStatePath = (state) => frameStatePath(state, getActiveFrameKey(
 const getFramesInternalIndex = (state, frameKey) => {
   if (frameKey == null) return -1
 
-  let index = state.getIn(['framesInternal', 'index', frameKey])
-  if (index == null) {
-    index = state.getIn(['framesInternal', 'index', frameKey.toString()])
-  }
+  const index = state.getIn(['framesInternal', 'index', frameKey.toString()])
   return index == null ? -1 : index
 }
 
 const getFramesInternalIndexByTabId = (state, tabId) => {
   if (tabId == null) return -1
 
-  let index = state.getIn(['framesInternal', 'tabIndex', tabId])
-  if (index == null) {
-    index = state.getIn(['framesInternal', 'tabIndex', tabId.toString()])
-  }
+  const index = state.getIn(['framesInternal', 'tabIndex', tabId.toString()])
   return index == null ? -1 : index
 }
 
 const deleteTabInternalIndex = (state, tabId) => {
-  state = state.deleteIn(['framesInternal', 'tabIndex', tabId.toString()])
-  return state.deleteIn(['framesInternal', 'tabIndex', tabId])
+  return state.deleteIn(['framesInternal', 'tabIndex', tabId.toString()])
 }
 
 const deleteFrameInternalIndex = (state, frame) => {
   if (!frame) {
     return state
   }
+
   state = state.deleteIn(['framesInternal', 'index', frame.get('key').toString()])
-  state = state.deleteIn(['framesInternal', 'index', frame.get('key')])
   return deleteTabInternalIndex(state, frame.get('tabId'))
 }
 
@@ -556,10 +472,10 @@ const updateFramesInternalIndex = (state, fromIndex) => {
   state.get('frames').slice(fromIndex).forEach((frame, idx) => {
     const realIndex = idx + fromIndex
     if (frame.get('key')) {
-      framesInternal = framesInternal.setIn(['index', frame.get('key')], realIndex)
+      framesInternal = framesInternal.setIn(['index', frame.get('key').toString()], realIndex)
     }
     if (frame.get('tabId') !== -1) {
-      framesInternal = framesInternal.setIn(['tabIndex', frame.get('tabId')], realIndex)
+      framesInternal = framesInternal.setIn(['tabIndex', frame.get('tabId').toString()], realIndex)
     }
 
     appActions.tabIndexChanged(frame.get('tabId'), realIndex)
@@ -599,7 +515,6 @@ module.exports = {
   getIndexByTabId,
   getPartitionNumber,
   getActiveFrame,
-  setActiveFrameKey,
   getNextFrame,
   getPreviousFrame,
   findDisplayIndexForFrameKey,
@@ -614,7 +529,6 @@ module.exports = {
   frameStatePath,
   activeFrameStatePath,
   getLastCommittedURL,
-  getFrameByLastAccessedTime,
   onFindBarHide,
   getTotalBlocks
 }

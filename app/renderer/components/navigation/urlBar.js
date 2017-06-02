@@ -42,9 +42,6 @@ const {normalizeLocation} = require('../../../common/lib/suggestion')
 // Icons
 const iconNoScript = require('../../../../img/url-bar-no-script.svg')
 
-// Stores
-const appStoreRenderer = require('../../../../js/stores/appStoreRenderer')
-
 class UrlBar extends React.Component {
   constructor (props) {
     super(props)
@@ -58,9 +55,8 @@ class UrlBar extends React.Component {
     this.onKeyPress = this.onKeyPress.bind(this)
     this.onClick = this.onClick.bind(this)
     this.onContextMenu = this.onContextMenu.bind(this)
-    this.keyPressed = false
     this.showAutocompleteResult = debounce(() => {
-      if (this.keyPressed || !this.urlInput) {
+      if (!this.urlInput) {
         return
       }
       this.updateAutocomplete(this.lastVal)
@@ -211,7 +207,6 @@ class UrlBar extends React.Component {
         }
         break
       default:
-        this.keyPressed = true
         // Only enable suggestions and autocomplete if we are typing in
         // a printable character without cmd/ctrl
         if (e.key && e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
@@ -258,6 +253,7 @@ class UrlBar extends React.Component {
       this.urlInput.setSelectionRange(newValue.length, newValue.length + newSuffix.length + 1)
       return true
     } else {
+      this.setValue(newValue, '')
       return false
     }
   }
@@ -312,11 +308,9 @@ class UrlBar extends React.Component {
     const newValue = val + suffix
     if (this.urlInput.value !== newValue) {
       this.urlInput.value = newValue
-      if (!this.keyPress) {
-        // if this is a key press don't sent the update until keyUp so
-        // showAutocompleteResult can handle the result
-        this.maybeUrlBarTextChanged(val)
-      }
+      // if this is a key press don't sent the update until keyUp so
+      // showAutocompleteResult can handle the result
+      this.maybeUrlBarTextChanged(val)
     }
   }
 
@@ -334,7 +328,6 @@ class UrlBar extends React.Component {
     if (this.props.isSelected) {
       windowActions.setUrlBarSelected(false)
     }
-    this.keyPressed = false
     this.maybeUrlBarTextChanged(this.lastVal)
   }
 
@@ -381,7 +374,6 @@ class UrlBar extends React.Component {
     if (this.urlInput) {
       const pdfjsEnabled = getSetting(settings.PDFJS_ENABLED)
       if (this.props.activeFrameKey !== prevProps.activeFrameKey) {
-        this.keyPressed = false
         // The user just changed tabs
         this.setValue(this.props.locationValue !== 'about:blank'
           ? this.props.locationValue
@@ -398,8 +390,7 @@ class UrlBar extends React.Component {
         if (!(prevProps.location === 'about:blank' && this.props.location === 'about:newtab' && this.props.locationValue !== 'about:blank')) {
           this.setValue(UrlUtil.getDisplayLocation(this.props.location, pdfjsEnabled))
         }
-      } else if (this.props.hasSuggestionMatch &&
-                this.props.isActive &&
+      } else if (this.props.isActive &&
                 this.props.locationValueSuffix !== this.lastSuffix) {
         this.showAutocompleteResult()
       } else if ((this.props.titleMode !== prevProps.titleMode) ||
@@ -442,7 +433,7 @@ class UrlBar extends React.Component {
   }
 
   get aboutPage () {
-    const protocol = urlParse(this.props.location).protocol
+    const protocol = this.props.location && urlParse(this.props.location).protocol
     return ['about:', 'file:', 'chrome:', 'view-source:'].includes(protocol)
   }
 
@@ -491,7 +482,7 @@ class UrlBar extends React.Component {
 
     const activateSearchEngine = urlbar.getIn(['searchDetail', 'activateSearchEngine'])
     const urlbarSearchDetail = urlbar.get('searchDetail')
-    let searchURL = appStoreRenderer.state.getIn(['searchDetail', 'searchURL'])
+    let searchURL = state.getIn(['searchDetail', 'searchURL'])
     let searchShortcut = ''
     // remove shortcut from the search terms
     if (activateSearchEngine && urlbarSearchDetail !== null) {

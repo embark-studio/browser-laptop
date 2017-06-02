@@ -6,10 +6,10 @@ import { createStore } from 'redux'
 window.store = createStore(appReducer)
 const style = {height: '100%'}
 
-const Main = () => (
+const Main = (props) => (
   <div style={style}>
     <Provider store={window.store}>
-      <Routes />
+      <Routes appState={props.appState} />
     </Provider>
   </div>
 )

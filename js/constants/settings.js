@@ -19,8 +19,6 @@ const settings = {
   IS_DEFAULT_BROWSER: 'general.is-default-browser',
   DOWNLOAD_DEFAULT_PATH: 'general.download-default-path',
   DOWNLOAD_ALWAYS_ASK: 'general.download-always-ask',
-  // Shields Tab
-  BLOCKED_COUNT_BADGE: 'general.blocked-count-badge',
   // Search tab
   DEFAULT_SEARCH_ENGINE: 'search.default-search-engine',
   OFFER_SEARCH_SUGGESTIONS: 'search.offer-search-suggestions',
@@ -60,6 +58,9 @@ const settings = {
   PAYMENTS_NOTIFICATION_TRY_PAYMENTS_DISMISSED: 'payments.notificationTryPaymentsDismissed',
   PAYMENTS_CONTRIBUTION_AMOUNT: 'payments.contribution-amount',
   PAYMENTS_NON_VERIFIED: 'payments.allow-non-verified-publishers',
+  // Shields Tab
+  BLOCKED_COUNT_BADGE: 'shields.blocked-count-badge',
+  COMPACT_BRAVERY_PANEL: 'shields.compact-bravery-panel',
   // Advanced settings
   HARDWARE_ACCELERATION_ENABLED: 'advanced.hardware-acceleration-enabled',
   PDFJS_ENABLED: 'advanced.pdfjs-enabled',
@@ -68,6 +69,7 @@ const settings = {
   SMOOTH_SCROLL_ENABLED: 'advanced.smooth-scroll-enabled',
   SEND_CRASH_REPORTS: 'advanced.send-crash-reports',
   SEND_USAGE_STATISTICS: 'advanced.send-usage-statistics',
+  UPDATE_TO_PREVIEW_RELEASES: 'advanced.update-to-preview-releases',
   ADBLOCK_CUSTOM_RULES: 'adblock.customRules',
   HIDE_EXCLUDED_SITES: 'advanced.hide-excluded-sites',
   HIDE_LOWER_SITES: 'advanced.hide-lower-sites',
@@ -98,7 +100,8 @@ const settings = {
   SHOW_BOOKMARKS_TOOLBAR_FAVICON: 'bookmarks.toolbar.showFavicon',
   SHOW_BOOKMARKS_TOOLBAR_ONLY_FAVICON: 'bookmarks.toolbar.showOnlyFavicon',
   POCKET_ENABLED: 'extensions.pocket.enabled',
-  VIMIUM_ENABLED: 'extensions.vimium.enabled'
+  VIMIUM_ENABLED: 'extensions.vimium.enabled',
+  HONEY_ENABLED: 'extensions.honey.enabled'
 }
 
 module.exports = settings

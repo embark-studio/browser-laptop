@@ -1,8 +1,29 @@
 /* global describe, it, beforeEach */
 
 const Brave = require('../lib/brave')
-const {cookieControl, allowAllCookiesOption, blockAllCookiesOption, urlInput, braveMenu, braveMenuDisabled, adsBlockedStat, adsBlockedControl, showAdsOption, blockAdsOption, braveryPanel, httpsEverywhereStat, noScriptStat, noScriptSwitch, fpSwitch, fpStat, noScriptNavButton, customFiltersInput} = require('../lib/selectors')
+const {
+  urlInput,
+  noScriptNavButton,
+  customFiltersInput,
+  compactBraveryPanelSwitch,
+  braveMenu, braveMenuDisabled,
+  braveryPanel, braveryPanelCompact,
+  adsBlockedStat,
+  adsBlockedControl,
+  showAdsOption,
+  blockAdsOption,
+  httpsEverywhereStat,
+  noScriptSwitch,
+  noScriptStat,
+  fpSwitch,
+  fpStat,
+  cookieControl,
+  allowAllCookiesOption,
+  blockAllCookiesOption
+} = require('../lib/selectors')
 const {getTargetAboutUrl} = require('../../js/lib/appUrlUtil')
+const prefsShieldsUrl = 'about:preferences#shields'
+const settings = require('../../js/constants/settings')
 
 describe('Bravery Panel', function () {
   function * setup (client) {
@@ -58,6 +79,21 @@ describe('Bravery Panel', function () {
         .waitForVisible(showAdsOption)
         .click(showAdsOption)
         .waitForTextValue(adsBlockedStat, '0')
+
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+        .keys(Brave.keys.ESCAPE)
+
+        .windowByUrl(Brave.browserWindowUrl)
+        .newTab({ url, isPrivate: true })
+        .waitForTabCount(3)
+        .waitForUrl(url)
+
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .waitForTextValue(adsBlockedStat, '0')
+        .click(adsBlockedControl)
+        .waitForVisible(blockAdsOption)
+        .click(blockAdsOption)
+        .waitForTextValue(adsBlockedStat, '2')
     })
     it('detects blocked elements', function * () {
       const url = Brave.server.url('tracking.html')
@@ -70,6 +106,20 @@ describe('Bravery Panel', function () {
         .waitForVisible(showAdsOption)
         .click(showAdsOption)
         .waitForTextValue(adsBlockedStat, '0')
+
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+        .keys(Brave.keys.ESCAPE)
+
+        .windowByUrl(Brave.browserWindowUrl)
+        .tabByIndex(0)
+        .loadUrl(url)
+
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .waitForTextValue(adsBlockedStat, '0')
+        .click(adsBlockedControl)
+        .waitForVisible(blockAdsOption)
+        .click(blockAdsOption)
+        .waitForTextValue(adsBlockedStat, '2')
     })
   })
 
@@ -108,7 +158,29 @@ describe('Bravery Panel', function () {
         .waitForVisible(showAdsOption)
         .click(showAdsOption)
         .waitForTextValue(adsBlockedStat, '0')
+
+        // Reset ad blocking setting
+        .click(adsBlockedControl)
+        .waitForVisible(blockAdsOption)
+        .click(blockAdsOption)
+        .waitForTextValue(adsBlockedStat, '2')
+
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+        .keys(Brave.keys.ESCAPE)
+
+        .windowByUrl(Brave.browserWindowUrl)
+        .newTab({ url, isPrivate: true })
+        .waitForTabCount(3)
+        .waitForUrl(url)
+
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .waitForTextValue(adsBlockedStat, '2')
+        .click(adsBlockedControl)
+        .waitForVisible(showAdsOption)
+        .click(showAdsOption)
+        .waitForTextValue(adsBlockedStat, '0')
     })
+
     it('downloads and detects regional adblock resources', function * () {
       const url = Brave.server.url('adblock.html')
       const aboutAdblockURL = getTargetAboutUrl('about:adblock')
@@ -134,7 +206,29 @@ describe('Bravery Panel', function () {
         .waitForVisible(showAdsOption)
         .click(showAdsOption)
         .waitForTextValue(adsBlockedStat, '0')
+
+        // Reset ad blocking setting
+        .click(adsBlockedControl)
+        .waitForVisible(blockAdsOption)
+        .click(blockAdsOption)
+        .waitForTextValue(adsBlockedStat, '2')
+
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+        .keys(Brave.keys.ESCAPE)
+
+        .windowByUrl(Brave.browserWindowUrl)
+        .newTab({ url })
+        .waitForTabCount(2)
+        .waitForUrl(url)
+
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .waitForTextValue(adsBlockedStat, '2')
+        .click(adsBlockedControl)
+        .waitForVisible(showAdsOption)
+        .click(showAdsOption)
+        .waitForTextValue(adsBlockedStat, '0')
     })
+
     it('detects adblock resources in private tab', function * () {
       const url = Brave.server.url('adblock.html')
       yield this.app.client
@@ -143,6 +237,28 @@ describe('Bravery Panel', function () {
         .waitForUrl(url)
         .windowByUrl(Brave.browserWindowUrl)
         .openBraveMenu(braveMenu, braveryPanel)
+        .waitForTextValue(adsBlockedStat, '1')
+        .click(adsBlockedControl)
+        .waitForVisible(showAdsOption)
+        .click(showAdsOption)
+        .waitForTextValue(adsBlockedStat, '0')
+
+        // Reset ad blocking setting
+        .click(adsBlockedControl)
+        .waitForVisible(blockAdsOption)
+        .click(blockAdsOption)
+        .waitForTextValue(adsBlockedStat, '1')
+
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+        .keys(Brave.keys.ESCAPE)
+
+        .windowByUrl(Brave.browserWindowUrl)
+        .newTab({ url, isPrivate: true })
+        .waitForTabCount(3)
+        .waitForUrl(url)
+        .windowByUrl(Brave.browserWindowUrl)
+
+        .openBraveMenu(braveMenu, braveryPanelCompact)
         .waitForTextValue(adsBlockedStat, '1')
         .click(adsBlockedControl)
         .waitForVisible(showAdsOption)
@@ -158,6 +274,28 @@ describe('Bravery Panel', function () {
         .waitForUrl(url)
         .windowByUrl(Brave.browserWindowUrl)
         .openBraveMenu(braveMenu, braveryPanel)
+        .waitForTextValue(adsBlockedStat, '1')
+        .click(adsBlockedControl)
+        .waitForVisible(showAdsOption)
+        .click(showAdsOption)
+        .waitForTextValue(adsBlockedStat, '0')
+
+        // Reset ad blocking setting
+        .click(adsBlockedControl)
+        .waitForVisible(blockAdsOption)
+        .click(blockAdsOption)
+        .waitForTextValue(adsBlockedStat, '1')
+
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+        .keys(Brave.keys.ESCAPE)
+
+        .windowByUrl(Brave.browserWindowUrl)
+        .newTab({ url })
+        .waitForTabCount(3)
+        .waitForUrl(url)
+        .windowByUrl(Brave.browserWindowUrl)
+
+        .openBraveMenu(braveMenu, braveryPanelCompact)
         .waitForTextValue(adsBlockedStat, '1')
         .click(adsBlockedControl)
         .waitForVisible(showAdsOption)
@@ -184,7 +322,30 @@ describe('Bravery Panel', function () {
         .waitForTabCount(2)
         .waitForUrl(url)
         .windowByUrl(Brave.browserWindowUrl)
+
         .openBraveMenu(braveMenu, braveryPanel)
+        .waitForTextValue(adsBlockedStat, '2')
+        .click(adsBlockedControl)
+        .waitForVisible(showAdsOption)
+        .click(showAdsOption)
+        .waitForTextValue(adsBlockedStat, '0')
+
+        // Reset ad blocking setting
+        .click(adsBlockedControl)
+        .waitForVisible(blockAdsOption)
+        .click(blockAdsOption)
+        .waitForTextValue(adsBlockedStat, '2')
+
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+        .keys(Brave.keys.ESCAPE)
+
+        .windowByUrl(Brave.browserWindowUrl)
+        .newTab({ url, isPrivate: true })
+        .waitForTabCount(3)
+        .waitForUrl(url)
+        .windowByUrl(Brave.browserWindowUrl)
+
+        .openBraveMenu(braveMenu, braveryPanelCompact)
         .waitForTextValue(adsBlockedStat, '2')
         .click(adsBlockedControl)
         .waitForVisible(showAdsOption)
@@ -211,8 +372,31 @@ describe('Bravery Panel', function () {
         .newTab({ url })
         .waitForTabCount(2)
         .waitForUrl(url)
+
         .windowByUrl(Brave.browserWindowUrl)
         .openBraveMenu(braveMenu, braveryPanel)
+        .waitForTextValue(adsBlockedStat, '2')
+        .click(adsBlockedControl)
+        .waitForVisible(showAdsOption)
+        .click(showAdsOption)
+        .waitForTextValue(adsBlockedStat, '0')
+
+        // Reset ad blocking setting
+        .click(adsBlockedControl)
+        .waitForVisible(blockAdsOption)
+        .click(blockAdsOption)
+        .waitForTextValue(adsBlockedStat, '2')
+
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+        .keys(Brave.keys.ESCAPE)
+
+        .windowByUrl(Brave.browserWindowUrl)
+        .newTab({ url })
+        .waitForTabCount(3)
+        .waitForUrl(url)
+        .windowByUrl(Brave.browserWindowUrl)
+
+        .openBraveMenu(braveMenu, braveryPanelCompact)
         .waitForTextValue(adsBlockedStat, '2')
         .click(adsBlockedControl)
         .waitForVisible(showAdsOption)
@@ -231,7 +415,27 @@ describe('Bravery Panel', function () {
         .waitForTextValue(adsBlockedStat, '1')
         .click(adsBlockedStat)
         .waitUntil(function () {
-          return this.getText('.braveryPanelBody li')
+          return this.getText('[data-test-id="braveryPanelBodyList"]')
+            .then((body) => {
+              return body[0] === 'ws://ag.innovid.com/dv/sync?tid=2'
+            })
+        })
+
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+        .keys(Brave.keys.ESCAPE)
+
+        .windowByUrl(Brave.browserWindowUrl)
+        .newTab({ url })
+        .waitForTabCount(2)
+        .waitForUrl(url)
+
+        .waitForTextValue('#result', 'success')
+        .waitForTextValue('#error', 'error')
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .waitForTextValue(adsBlockedStat, '1')
+        .click(adsBlockedStat)
+        .waitUntil(function () {
+          return this.getText('[data-test-id="braveryPanelBodyList"]')
             .then((body) => {
               return body[0] === 'ws://ag.innovid.com/dv/sync?tid=2'
             })
@@ -250,6 +454,17 @@ describe('Bravery Panel', function () {
         .windowByUrl(Brave.browserWindowUrl)
         .openBraveMenu(braveMenu, braveryPanel)
         .waitForTextValue(httpsEverywhereStat, '1')
+
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+        .keys(Brave.keys.ESCAPE)
+
+        .windowByUrl(Brave.browserWindowUrl)
+        .newTab({ url, isPrivate: true })
+        .waitForTabCount(3)
+        .waitForUrl(url)
+        .windowByUrl(Brave.browserWindowUrl)
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .waitForTextValue(httpsEverywhereStat, '1')
     })
     it('detects https upgrades', function * () {
       const url = Brave.server.url('httpsEverywhere.html')
@@ -258,6 +473,18 @@ describe('Bravery Panel', function () {
         .tabByIndex(0)
         .loadUrl(url)
         .openBraveMenu(braveMenu, braveryPanel)
+        .waitForTextValue(httpsEverywhereStat, '1')
+
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+        .keys(Brave.keys.ESCAPE)
+
+        .windowByUrl(Brave.browserWindowUrl)
+        .newTab({ url })
+        .waitForTabCount(2)
+        .waitForUrl(url)
+        .windowByUrl(Brave.browserWindowUrl)
+
+        .openBraveMenu(braveMenu, braveryPanelCompact)
         .waitForTextValue(httpsEverywhereStat, '1')
     })
     it('blocks scripts in a regular tab', function * () {
@@ -281,7 +508,23 @@ describe('Bravery Panel', function () {
         })
         .openBraveMenu(braveMenu, braveryPanel)
         .waitForTextValue(noScriptStat, '2')
-        .waitForVisible(noScriptNavButton)
+        .click(noScriptSwitch)
+        .waitForTextValue(noScriptStat, '0')
+        .keys(Brave.keys.ESCAPE)
+        .waitForElementCount(noScriptNavButton, 0)
+
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+        .keys(Brave.keys.ESCAPE)
+
+        .windowByUrl(Brave.browserWindowUrl)
+        .newTab({ url })
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .click(noScriptSwitch)
+        .waitForTextValue(noScriptStat, '2')
+        .click(noScriptSwitch)
+        .waitForTextValue(noScriptStat, '0')
+        .keys(Brave.keys.ESCAPE)
+        .waitForElementCount(noScriptNavButton, 0)
     })
     it('blocks scripts in a private tab', function * () {
       const url = Brave.server.url('scriptBlock.html')
@@ -308,7 +551,116 @@ describe('Bravery Panel', function () {
         .waitForTextValue(noScriptStat, '0')
         .keys(Brave.keys.ESCAPE)
         .waitForElementCount(noScriptNavButton, 0)
+
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+        .keys(Brave.keys.ESCAPE)
+
+        .windowByUrl(Brave.browserWindowUrl)
+        .newTab({ url, isPrivate: true })
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .click(noScriptSwitch)
+        .waitForTextValue(noScriptStat, '2')
+        .click(noScriptSwitch)
+        .waitForTextValue(noScriptStat, '0')
+        .keys(Brave.keys.ESCAPE)
+        .waitForElementCount(noScriptNavButton, 0)
     })
+
+    // #8783
+    it('does not apply exceptions from private tabs to regular tabs', function * () {
+      const url = Brave.server.url('scriptBlock.html')
+      yield this.app.client
+        // 1. disable scripts on the url
+        .tabByIndex(0)
+        .loadUrl(url)
+        .waitForTextValue('body', 'test1 test2')
+        .openBraveMenu(braveMenu, braveryPanel)
+        .click(noScriptSwitch)
+        .waitForTextValue(noScriptStat, '2')
+        .keys(Brave.keys.ESCAPE)
+        .waitForVisible(noScriptNavButton)
+
+        // 2. open the url in a private tab. scripts should be disabled
+        .newTab({ url, isPrivate: true })
+        .waitForTabCount(2)
+        .waitForUrl(url)
+        .waitUntil(function () {
+          // getText returns empty in this case
+          return this.getElementSize('noscript')
+            .then((size) => size.height > 0)
+        })
+        .openBraveMenu(braveMenu, braveryPanel)
+        .waitForTextValue(noScriptStat, '2')
+        .keys(Brave.keys.ESCAPE)
+        .waitForVisible(noScriptNavButton)
+
+        // 3. click the noscript switch to allow scripts in the private tab
+        .openBraveMenu(braveMenu, braveryPanel)
+        .click(noScriptSwitch)
+        .waitForTextValue(noScriptStat, '0')
+        .keys(Brave.keys.ESCAPE)
+
+        // 4. load the url again in a regular tab. scripts should still be disabled.
+        .newTab({ url })
+        .waitForTabCount(3)
+        .waitForUrl(url)
+        .waitUntil(function () {
+          // getText returns empty in this case
+          return this.getElementSize('noscript')
+            .then((size) => size.height > 0)
+        })
+        .openBraveMenu(braveMenu, braveryPanel)
+        .waitForTextValue(noScriptStat, '2')
+        .keys(Brave.keys.ESCAPE)
+        .waitForVisible(noScriptNavButton)
+    })
+    it('does not apply exceptions from private tabs to regular tabs on compact panel', function * () {
+      const url = Brave.server.url('scriptBlock.html')
+      yield this.app.client
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+        .keys(Brave.keys.ESCAPE)
+
+        .tabByIndex(0)
+        .loadUrl(url)
+        .waitForTextValue('body', 'test1 test2')
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .click(noScriptSwitch)
+        .waitForTextValue(noScriptStat, '2')
+        .keys(Brave.keys.ESCAPE)
+        .waitForVisible(noScriptNavButton)
+
+        .newTab({ url, isPrivate: true })
+        .waitForTabCount(2)
+        .waitForUrl(url)
+        .waitUntil(function () {
+          // getText returns empty in this case
+          return this.getElementSize('noscript')
+            .then((size) => size.height > 0)
+        })
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .waitForTextValue(noScriptStat, '2')
+        .keys(Brave.keys.ESCAPE)
+        .waitForVisible(noScriptNavButton)
+
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .click(noScriptSwitch)
+        .waitForTextValue(noScriptStat, '0')
+        .keys(Brave.keys.ESCAPE)
+
+        .newTab({ url })
+        .waitForTabCount(3)
+        .waitForUrl(url)
+        .waitUntil(function () {
+          // getText returns empty in this case
+          return this.getElementSize('noscript')
+            .then((size) => size.height > 0)
+        })
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .waitForTextValue(noScriptStat, '2')
+        .keys(Brave.keys.ESCAPE)
+        .waitForVisible(noScriptNavButton)
+    })
+
     it('shows noscript tag content', function * () {
       const url = Brave.server.url('scriptBlock.html')
       yield this.app.client
@@ -326,6 +678,28 @@ describe('Bravery Panel', function () {
           // getText returns empty in this case
           return this.getElementSize('noscript')
             .then((size) => size.height > 0)
+        })
+
+        .windowByUrl(Brave.browserWindowUrl)
+        .keys(Brave.keys.ESCAPE)
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+
+        .tabByIndex(0)
+        .loadUrl(url)
+        .waitUntil(function () {
+          return this.getElementSize('noscript')
+            .then((size) => size.height > 0)
+        })
+        .windowByUrl(Brave.browserWindowUrl)
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .click(noScriptSwitch)
+
+        .keys(Brave.keys.ESCAPE)
+        .tabByIndex(0)
+        .loadUrl(url)
+        .waitUntil(function () {
+          return this.getElementSize('noscript')
+            .then((size) => size.height === 0 && size.width === 0)
         })
     })
     it('blocks cookies', function * () {
@@ -348,6 +722,24 @@ describe('Bravery Panel', function () {
         .tabByIndex(0)
         .loadUrl(url)
         .waitForTextValue('body', expectedBlocked)
+
+        .windowByUrl(Brave.browserWindowUrl)
+        .keys(Brave.keys.ESCAPE)
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+
+        .tabByIndex(0)
+        .loadUrl(url)
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .click(cookieControl)
+        .waitForVisible(blockAllCookiesOption)
+        .click(allowAllCookiesOption)
+        .tabByIndex(0)
+        .loadUrl(url)
+        .waitUntil(function () {
+          return this.getText('body').then((text) => {
+            return text.includes('abc=123')
+          })
+        })
     })
     it('allows cookies', function * () {
       const url = Brave.server.url('cookies.html')
@@ -358,6 +750,25 @@ describe('Bravery Panel', function () {
         .click(cookieControl)
         .waitForVisible(allowAllCookiesOption)
         .click(allowAllCookiesOption)
+        .tabByIndex(0)
+        .loadUrl(url)
+        .waitUntil(function () {
+          return this.getText('body').then((text) => {
+            return text.includes('abc=123')
+          })
+        })
+
+        .windowByUrl(Brave.browserWindowUrl)
+        .keys(Brave.keys.ESCAPE)
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+
+        .tabByIndex(0)
+        .loadUrl(url)
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .click(cookieControl)
+        .waitForVisible(blockAllCookiesOption)
+        .click(allowAllCookiesOption)
+
         .tabByIndex(0)
         .loadUrl(url)
         .waitUntil(function () {
@@ -404,6 +815,46 @@ describe('Bravery Panel', function () {
             .then((stat) => stat === '2' || stat === '3')
         })
     })
+    it('blocks fingerprinting on compact panel', function * () {
+      const url = Brave.server.url('fingerprinting.html')
+      yield this.app.client
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+
+        .tabByIndex(0)
+        .loadUrl(url)
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .click(fpSwitch)
+        .waitUntil(function () {
+          // TOOD: This should be 3, but see:
+          // https://github.com/brave/browser-laptop/issues/3227
+          return this.getText(fpStat)
+            .then((stat) => stat === '2' || stat === '3')
+        })
+        .keys(Brave.keys.ESCAPE)
+        .newTab({ url, isPrivate: true })
+        .waitForTabCount(2)
+        .waitForUrl(url)
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .waitUntil(function () {
+          // TOOD: This should be 3, but see:
+          // https://github.com/brave/browser-laptop/issues/3227
+          return this.getText(fpStat)
+            .then((stat) => stat === '2' || stat === '3')
+        })
+        .click(fpSwitch)
+        .waitForTextValue(fpStat, '0')
+        .keys(Brave.keys.ESCAPE)
+        .newTab({ url })
+        .waitForTabCount(3)
+        .waitForUrl(url)
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .waitUntil(function () {
+          // TOOD: This should be 3, but see:
+          // https://github.com/brave/browser-laptop/issues/3227
+          return this.getText(fpStat)
+            .then((stat) => stat === '2' || stat === '3')
+        })
+    })
     it('block device enumeration', function * () {
       const url = Brave.server.url('enumerate_devices.html')
       yield this.app.client
@@ -428,6 +879,29 @@ describe('Bravery Panel', function () {
               return body === ''
             })
         })
+
+        .keys(Brave.keys.ESCAPE)
+        .tabByIndex(0)
+        .loadUrl(prefsShieldsUrl)
+        .waitForVisible(compactBraveryPanelSwitch)
+        .click(compactBraveryPanelSwitch)
+        .windowByUrl(Brave.browserWindowUrl)
+
+        .tabByIndex(0)
+        .loadUrl(url)
+        .windowByUrl(Brave.browserWindowUrl)
+        .waitUntil(function () {
+          return this.getText(fpStat)
+            .then((stat) => stat === '1')
+        })
+        .click(fpSwitch)
+        .tabByUrl(url)
+        .waitUntil(function () {
+          return this.getText('body')
+            .then((body) => {
+              return body.includes('default')
+            })
+        })
     })
     it('allows fingerprinting when setting is off in private tab', function * () {
       const url = Brave.server.url('fingerprinting.html')
@@ -438,6 +912,16 @@ describe('Bravery Panel', function () {
         .waitForTextValue('body', 'fingerprinting test')
         .openBraveMenu(braveMenu, braveryPanel)
         .waitForTextValue(fpStat, '0')
+
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+        .keys(Brave.keys.ESCAPE)
+
+        .newTab({ url, isPrivate: true })
+        .waitForTabCount(3)
+        .waitForUrl(url)
+        .waitForTextValue('body', 'fingerprinting test')
+        .openBraveMenu(braveMenu, braveryPanelCompact)
+        .waitForTextValue(fpStat, '0')
     })
     it('allows fingerprinting when setting is off', function * () {
       const url = Brave.server.url('fingerprinting.html')
@@ -446,6 +930,15 @@ describe('Bravery Panel', function () {
         .loadUrl(url)
         .waitForTextValue('body', 'fingerprinting test')
         .openBraveMenu(braveMenu, braveryPanel)
+        .waitForTextValue(fpStat, '0')
+
+        .changeSetting(settings.COMPACT_BRAVERY_PANEL, true)
+        .keys(Brave.keys.ESCAPE)
+
+        .tabByIndex(0)
+        .loadUrl(url)
+        .waitForTextValue('body', 'fingerprinting test')
+        .openBraveMenu(braveMenu, braveryPanelCompact)
         .waitForTextValue(fpStat, '0')
     })
   })

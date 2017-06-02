@@ -182,6 +182,7 @@ AppStore
     'bookmarks.toolbar.showOnlyFavicon': boolean, // true if only favicons should be shown on the bookmarks toolbar
     'extensions.pocket.enabled': boolean, // true if pocket is enabled
     'extensions.vimium.enabled': boolean, // true if vimium is enabled
+    'extensions.honey.enabled': boolean, // true if Honey is enabled
     'general.autohide-menu': boolean, // true if the Windows menu should be autohidden
     'general.wide-url-bar': boolean, // true to use wide URL bar
     'general.bookmarks-toolbar-mode': boolean, // true to show bookmarks toolbar
@@ -211,6 +212,8 @@ AppStore
     'search.default-search-engine': string, // name of search engine, from js/data/searchProviders.js
     'search.offer-search-suggestions': boolean, // true if suggestions should be offered from the default search engine when available.
     'security.flash.installed': boolean,
+    'shields.blocked-count-badge': boolean, // true if blocked counts on the shield button should be enabled
+    'shields.compact-bravery-panel': boolean, // true if the compact Bravery panel should be enabled
     'security.passwords.active-password-manager': string, // name of active password manager
     'security.passwords.bitwarden-enabled': boolean, // true if the bitwarden extension should be enabled
     'security.passwords.dashlane-enabled': boolean, // true if the Dashlane extension should be enabled

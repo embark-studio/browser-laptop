@@ -25,6 +25,9 @@ const appConfig = require('../../js/constants/appConfig')
 const siteTags = require('../../js/constants/siteTags')
 const {newTabMode} = require('../common/constants/settingsEnums')
 const {cleanupWebContents, currentWebContents, getWebContents, updateWebContents} = require('./webContentsCache')
+const {FilterOptions} = require('ad-block')
+const urlParse = require('../common/urlParse')
+const {isResourceEnabled} = require('../filtering')
 
 let currentPartitionNumber = 0
 const incrementPartitionNumber = () => ++currentPartitionNumber
@@ -131,6 +134,23 @@ ipcMain.on(messages.ABOUT_COMPONENT_INITIALIZED, (e) => {
   })
 })
 
+const getBookmarksData = function (state) {
+  let bookmarkSites = new Immutable.Map()
+  let bookmarkFolderSites = new Immutable.Map()
+  state.get('sites').forEach((site, siteKey) => {
+    const tags = site.get('tags')
+    if (tags.includes(siteTags.BOOKMARK)) {
+      bookmarkSites = bookmarkSites.set(siteKey, site)
+    }
+    if (tags.includes(siteTags.BOOKMARK_FOLDER)) {
+      bookmarkFolderSites = bookmarkFolderSites.set(siteKey, site)
+    }
+  })
+  const bookmarks = bookmarkSites.toList().sort(siteUtil.siteSort).toJS()
+  const bookmarkFolders = bookmarkFolderSites.toList().sort(siteUtil.siteSort).toJS()
+  return {bookmarks, bookmarkFolders}
+}
+
 const updateAboutDetails = (tab, tabValue) => {
   const appState = appStore.getState()
   const url = getSourceAboutUrl(tab.getURL())
@@ -146,8 +166,6 @@ const updateAboutDetails = (tab, tabValue) => {
     allSiteSettings = allSiteSettings.mergeDeep(appState.get('temporarySiteSettings'))
   }
   const extensionsValue = appState.get('extensions')
-  const bookmarks = appState.get('sites').filter((site) => site.get('tags').includes(siteTags.BOOKMARK)).toList().sort(siteUtil.siteSort)
-  const bookmarkFolders = appState.get('sites').filter((site) => site.get('tags').includes(siteTags.BOOKMARK_FOLDER)).toList().sort(siteUtil.siteSort)
   const sync = appState.get('sync')
   const braveryDefaults = siteSettings.braveryDefaults(appState, appConfig)
   const history = aboutHistoryState.getHistory(appState)
@@ -170,11 +188,11 @@ const updateAboutDetails = (tab, tabValue) => {
     tab.send(messages.SYNC_UPDATED, sync.toJS())
     tab.send(messages.BRAVERY_DEFAULTS_UPDATED, braveryDefaults)
     tab.send(messages.EXTENSIONS_UPDATED, extensionsValue.toJS())
-  } else if (location === 'about:bookmarks' && bookmarks) {
-    tab.send(messages.BOOKMARKS_UPDATED, {
-      bookmarks: bookmarks.toJS(),
-      bookmarkFolders: bookmarkFolders.toJS()
-    })
+  } else if (location === 'about:bookmarks') {
+    const bookmarksData = getBookmarksData(appState)
+    if (bookmarksData.bookmarks) {
+      tab.send(messages.BOOKMARKS_UPDATED, bookmarksData)
+    }
   } else if (location === 'about:history') {
     if (!history) {
       appActions.populateHistory()
@@ -541,6 +559,7 @@ const api = {
 
   create: (createProperties, cb = null, isRestore = false) => {
     setImmediate(() => {
+      const {safeBrowsingInstance} = require('../adBlock')
       createProperties = makeImmutable(createProperties).toJS()
 
       // handle deprecated `location` property
@@ -557,6 +576,12 @@ const api = {
         createProperties.url = newFrameUrl()
       }
       createProperties.url = normalizeUrl(createProperties.url)
+      if (isResourceEnabled('safeBrowsing', createProperties.url, createProperties.isPrivate) &&
+        safeBrowsingInstance &&
+        safeBrowsingInstance.matches(createProperties.url, FilterOptions.document, urlParse(createProperties.url).host)) {
+        // Workaround #9056 by setting URL to the safebrowsing URL
+        createProperties.url = getTargetAboutUrl('about:safebrowsing#' + createProperties.url)
+      }
       if (needsPartitionAssigned(createProperties)) {
         createProperties.partition = getPartition(createProperties)
         if (isSessionPartition(createProperties.partition)) {

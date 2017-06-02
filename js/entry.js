@@ -73,7 +73,7 @@ ipc.on(messages.INITIALIZE_WINDOW, (e, windowValue, appState, frames, initWindow
     )
   } else {
     ReactDOM.render(
-      <MirageID />,
+      <MirageID appState={appState} />,
         document.getElementById('appContainer')
     )
   }

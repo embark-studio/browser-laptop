@@ -152,10 +152,9 @@ let generateBraveManifest = () => {
   let cspDirectives = {
     'default-src': '\'self\'',
     'form-action': '\'none\'',
-    'referrer': 'no-referrer',
     'style-src': '\'self\' \'unsafe-inline\'',
     'img-src': '* data: file://*',
-    'frame-src': '\'self\' https://buy.coinbase.com'
+    'frame-src': '\'self\' https://buy.coinbase.com https://brave.com'
   }
 
   if (process.env.NODE_ENV === 'development') {
@@ -245,7 +244,6 @@ let generateTorrentManifest = () => {
     'connect-src': '\'self\' https://example.com',
     'media-src': '\'self\' http://localhost:*',
     'form-action': '\'none\'',
-    'referrer': 'no-referrer',
     'style-src': '\'self\' \'unsafe-inline\'',
     'frame-src': '\'self\' http://localhost:*'
   }
@@ -581,6 +579,12 @@ module.exports.init = () => {
       registerComponent(config.vimiumExtensionId)
     } else {
       disableExtension(config.vimiumExtensionId)
+    }
+
+    if (getSetting(settings.HONEY_ENABLED)) {
+      registerComponent(config.honeyExtensionId)
+    } else {
+      disableExtension(config.honeyExtensionId)
     }
 
     if (appStore.getState().getIn(['widevine', 'enabled'])) {

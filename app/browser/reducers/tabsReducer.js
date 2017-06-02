@@ -6,17 +6,78 @@
 
 const appConstants = require('../../../js/constants/appConstants')
 const tabs = require('../tabs')
+const windows = require('../windows')
 const {getWebContents} = require('../webContentsCache')
 const {BrowserWindow} = require('electron')
 const tabState = require('../../common/state/tabState')
+const windowState = require('../../common/state/windowState')
 const windowConstants = require('../../../js/constants/windowConstants')
-const windowAction = require('../../../js/actions/windowActions.js')
+const windowActions = require('../../../js/actions/windowActions')
 const {makeImmutable} = require('../../common/state/immutableUtil')
 const {getFlashResourceId} = require('../../../js/flash')
 const {l10nErrorText} = require('../../common/lib/httpUtil')
 const Immutable = require('immutable')
 const dragTypes = require('../../../js/constants/dragTypes')
+const getSetting = require('../../../js/settings').getSetting
+const settings = require('../../../js/constants/settings')
+const {tabCloseAction} = require('../../common/constants/settingsEnums')
 const {frameOptsFromFrame} = require('../../../js/state/frameStateUtil')
+
+const updateActiveTab = (state, closeTabId) => {
+  if (!tabState.getByTabId(state, closeTabId)) {
+    return
+  }
+
+  const index = tabState.getIndex(state, closeTabId)
+  if (index === -1) {
+    return
+  }
+
+  if (!tabState.isActive(state, closeTabId)) {
+    return
+  }
+
+  const windowId = tabState.getWindowId(state, closeTabId)
+  if (windowId === windowState.WINDOW_ID_NONE) {
+    return
+  }
+
+  let nextTabId = tabState.TAB_ID_NONE
+  switch (getSetting(settings.TAB_CLOSE_ACTION)) {
+    case tabCloseAction.LAST_ACTIVE:
+      nextTabId = tabState.getLastActiveTabId(state, windowId)
+      break
+    default:
+      {
+        const openerTabId = tabState.getOpenerTabId(state, closeTabId)
+        const lastActiveTabId = tabState.getLastActiveTabId(state, windowId)
+        if (openerTabId === lastActiveTabId) {
+          nextTabId = openerTabId
+        }
+        break
+      }
+  }
+
+  // always fall back to NEXT
+  if (nextTabId === tabState.TAB_ID_NONE) {
+    nextTabId = tabState.getNextTabIdByIndex(state, windowId, index)
+    if (nextTabId === tabState.TAB_ID_NONE) {
+      // no unpinned tabs so find the next pinned tab
+      nextTabId = tabState.getNextTabIdByIndex(state, windowId, index, true)
+    }
+  }
+
+  // if we can't find anything else just pick the first tab
+  if (nextTabId === tabState.TAB_ID_NONE) {
+    nextTabId = tabState.getTabIdByIndex(state, windowId, 0, true)
+  }
+
+  if (nextTabId !== tabState.TAB_ID_NONE) {
+    setImmediate(() => {
+      tabs.setActive(nextTabId)
+    })
+  }
+}
 
 const tabsReducer = (state, action, immutableAction) => {
   action = immutableAction || makeImmutable(action)
@@ -63,7 +124,11 @@ const tabsReducer = (state, action, immutableAction) => {
         // it figures out the active window based on state with focused property,
         // and the focused window might actually be a devtools window.
         if (tabId === tabState.TAB_ID_ACTIVE) {
-          tabId = tabState.getActiveTabId(state, BrowserWindow.getActiveWindow().id)
+          if (BrowserWindow.getActiveWindow()) {
+            tabId = tabState.getActiveTabId(state, BrowserWindow.getActiveWindow().id)
+          } else {
+            break
+          }
         } else {
           tabId = tabState.resolveTabId(state, tabId)
         }
@@ -71,15 +136,26 @@ const tabsReducer = (state, action, immutableAction) => {
           break
         }
 
-        setImmediate(() => {
-          if (tabId) {
-            if (tabs.isDevToolsFocused(tabId)) {
+        if (tabId) {
+          if (tabs.isDevToolsFocused(tabId)) {
+            setImmediate(() => {
               tabs.toggleDevTools(tabId)
+            })
+          } else {
+            const windowId = tabState.getWindowId(state, tabId)
+            const nonPinnedTabs = tabState.getNonPinnedTabsByWindowId(state, windowId)
+            const pinnedTabs = tabState.getPinnedTabsByWindowId(state, windowId)
+
+            if (nonPinnedTabs.size > 1 ||
+              (nonPinnedTabs.size > 0 && pinnedTabs.size > 0)) {
+              setImmediate(() => {
+                tabs.closeTab(tabId, action.get('forceClosePinned'))
+              })
             } else {
-              tabs.closeTab(tabId, action.get('forceClosePinned'))
+              state = windows.closeWindow(state, windowId)
             }
           }
-        })
+        }
       }
       break
     case appConstants.APP_TAB_CLOSED:
@@ -88,6 +164,7 @@ const tabsReducer = (state, action, immutableAction) => {
         if (tabId === tabState.TAB_ID_NONE) {
           break
         }
+        updateActiveTab(state, tabId)
         state = tabState.removeTabByTabId(state, tabId)
       }
       break
@@ -169,7 +246,7 @@ const tabsReducer = (state, action, immutableAction) => {
         const windowId = tabValue.get('windowId')
 
         if (history !== null) {
-          windowAction.onLongBackHistory(
+          windowActions.onLongBackHistory(
             history,
             action.getIn(['rect', 'left']),
             action.getIn(['rect', 'bottom']),
@@ -187,7 +264,7 @@ const tabsReducer = (state, action, immutableAction) => {
         const windowId = tabValue.get('windowId')
 
         if (history !== null) {
-          windowAction.onLongForwardHistory(
+          windowActions.onLongForwardHistory(
             history,
             action.getIn(['rect', 'left']),
             action.getIn(['rect', 'bottom']),

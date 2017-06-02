@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+const {opacityIncreaseKeyframes} = require('./animations')
+
 /**
  * Historically this file includes styles with no defined criteria.
  * Imagine this file as a future reference for theming, in a way
@@ -240,21 +242,35 @@ const globalStyles = {
     moreInfo: 'fa fa-info-circle',
     angleDoubleRight: 'fa fa-angle-double-right'
   },
+  animations: {
+    subtleShowUp: {
+      opacity: 0,
+      animationName: opacityIncreaseKeyframes,
+      animationDelay: '120ms',
+      animationTimingFunction: 'linear',
+      animationDuration: '120ms',
+      animationFillMode: 'forwards'
+    }
+  },
+
   button: {
+    color: '#5a5a5a',
+
     default: {
-      color: '#5a5a5a',
+      color: '#fff',
       backgroundColor: 'transparent',
       hoverColor: '#000',
       boxShadow: '0px 1px 5px -1px rgba(0, 0, 0, 0.5)'
     },
+
     primary: {
       gradientColor1: '#FF7A1D',
       gradientColor2: '#ff5000',
       background: 'linear-gradient(#FF7A1D, #ff5000)',
-      color: '#fff',
       hoverColor: '#fff',
       borderHoverColor: '#fff'
     },
+
     secondary: {
       gradientColor1: '#fff',
       gradientColor2: '#ececec',
@@ -262,6 +278,33 @@ const globalStyles = {
       color: '#444',
       hoverColor: '#000',
       borderHoverColor: 'rgb(153, 153, 153)'
+    },
+
+    subtle: {
+      // cf: https://github.com/brave/browser-laptop/blob/548e11b1c889332fadb379237555625ad2a3c845/less/button.less#L151
+      backgroundColor: '#ccc'
+    }
+  },
+
+  braveryPanel: {
+    color: '#3b3b3b',
+
+    header: {
+      color: '#fff',
+      background: '#808080',
+      switchControlTopTextColor: '#d3d3d3'
+    },
+
+    stats: {
+      background: '#f7f7f7'
+    },
+
+    body: {
+      background: '#eee',
+
+      hr: {
+        background: '#ccc'
+      }
     }
   }
 }
@@ -274,8 +317,12 @@ globalStyles.color.siteSecureColor = globalStyles.color.buttonColor
 globalStyles.color.loadTimeColor = globalStyles.color.highlightBlue
 globalStyles.color.activeTabDefaultColor = globalStyles.color.chromePrimary
 globalStyles.color.switchBG_on = globalStyles.color.braveOrange
-globalStyles.color.statsGray = globalStyles.color.chromeText
 
 globalStyles.spacing.tabHeight = globalStyles.spacing.tabsToolbarHeight
+
+globalStyles.braveryPanel.stats.colorAds = globalStyles.color.statsRed
+globalStyles.braveryPanel.stats.colorRedirected = globalStyles.color.statsBlue
+globalStyles.braveryPanel.stats.colorFp = globalStyles.color.statsYellow
+globalStyles.braveryPanel.stats.colorNoScript = globalStyles.color.chromeText
 
 module.exports = globalStyles
