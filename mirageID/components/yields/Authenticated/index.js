@@ -1,7 +1,8 @@
 import {Component} from 'react'
-import {App} from '../../groups'
+import {App, ScrollContainer} from '../../groups'
 import {connect} from 'react-redux'
 import {identityActions} from '../../../actions'
+import style from './style'
 
 class UnAuthenticated extends Component {
   constructor () {
@@ -16,11 +17,13 @@ class UnAuthenticated extends Component {
     return (
       <App>
         Identities
-        {this.props.identities.map((identity) => (
-          <div onClick={this.handleIdentity.bind(null, identity)}>
-            {identity.Name}
-          </div>
-        ))}
+        <ScrollContainer>
+          {this.props.identities.map((identity) => (
+            <div className={style('identity')} onClick={this.handleIdentity.bind(null, identity)}>
+              {identity.Name}
+            </div>
+          ))}
+        </ScrollContainer>
       </App>
     )
   }

@@ -3,7 +3,7 @@ import Immutable from 'immutable'
 
 const actions = {
   launchIdentity: (identity) => {
-    appActions.newWindow(null, Immutable.fromJS({identity}))
+    appActions.newWindow(null, Immutable.fromJS({identity}), null)
   }
 }
 

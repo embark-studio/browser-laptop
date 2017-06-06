@@ -909,6 +909,7 @@ class Frame extends React.Component {
 
   mergeProps (state, dispatchProps, ownProps) {
     const currentWindow = state.get('currentWindow')
+
     const frame = frameStateUtil.getFrameByKey(currentWindow, ownProps.frameKey) || Immutable.Map()
     const location = frame.get('location')
     const allSiteSettings = siteSettingsState.getAllSiteSettings(state, frame.get('isPrivate'))
@@ -950,7 +951,16 @@ class Frame extends React.Component {
     props.shortcutDetailsAction = frame.getIn(['activeShortcutDetails', 'action'])
     props.provisionalLocation = frame.get('provisionalLocation')
     props.src = frame.get('src')
-    props.guestInstanceId = frame.get('guestInstanceId')
+
+    /*****************************************************************
+     *****************************************************************
+     * Start Mirage ID
+     *****************************************************************/
+    // props.guestInstanceId = frame.get('guestInstanceId')
+    /*****************************************************************
+     * End Mirage ID
+     *****************************************************************
+     *****************************************************************/
     props.aboutDetailsUrl = frame.getIn(['aboutDetails', 'url'])
     props.aboutDetailsFrameKey = frame.getIn(['aboutDetails', 'frameKey'])
     props.aboutDetailsErrorCode = frame.getIn(['aboutDetails', 'errorCode'])

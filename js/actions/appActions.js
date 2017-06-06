@@ -116,6 +116,7 @@ const appActions = {
    * @param {Object} createProperties
    */
   createTabRequested: function (createProperties, activateIfOpen = false, isRestore = false) {
+    createProperties.partitionNumber = `persist:partition-${window.identity.ID}`
     dispatch({
       actionType: appConstants.APP_CREATE_TAB_REQUESTED,
       createProperties,

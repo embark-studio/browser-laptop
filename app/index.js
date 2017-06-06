@@ -354,7 +354,7 @@ app.on('ready', () => {
             appActions.newWindow(undefined, undefined, wndState)
           })
         } */
-    appActions.newWindow()
+    appActions.newWindow(null, Immutable.fromJS({width: 600, height: 600}), null)
     /**************************************************************
      * END MIRAGE ID
      **************************************************************

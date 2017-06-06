@@ -13,7 +13,11 @@ const stylesheet = StyleSheet.create({
     color: '#eff4ef'
   },
   innerContainer: {
-    padding: '1em'
+    marginTop: '-1em',
+    padding: '2em 1em',
+    paddingBottom: '4em',
+    height: '100%',
+    boxSizing: 'border-box'
   }
 })
 

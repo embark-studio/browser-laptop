@@ -66,6 +66,9 @@ window.addEventListener('beforeunload', function (e) {
 ipc.on(messages.INITIALIZE_WINDOW, (e, windowValue, appState, frames, initWindowState) => {
   currentWindow.setWindowId(windowValue.id)
   appStoreRenderer.state = Immutable.fromJS(appState)
+
+  window.identity = appState.identity
+
   if (appState.identity) {
     ReactDOM.render(
       <Window frames={frames} initWindowState={initWindowState} />,
@@ -73,7 +76,7 @@ ipc.on(messages.INITIALIZE_WINDOW, (e, windowValue, appState, frames, initWindow
     )
   } else {
     ReactDOM.render(
-      <MirageID appState={appState} />,
+      <MirageID />,
         document.getElementById('appContainer')
     )
   }

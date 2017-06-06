@@ -115,9 +115,22 @@ const setWindowPosition = (browserOpts, defaults, windowState) => {
 const createWindow = (action) => {
   const frameOpts = (action.frameOpts && action.frameOpts.toJS()) || {}
   let browserOpts = (action.browserOpts && action.browserOpts.toJS()) || {}
+
   const windowState = action.restoredState || {}
   const defaults = windowDefaults()
+
+  /**************************************************************
+   **************************************************************
+   * Start Mirage ID
+   **************************************************************/
   const {identity} = browserOpts
+  if (identity) {
+    defaults.webPreferences.partition = `persist:partition-${identity.ID}`
+  }
+  /**************************************************************
+   * End Mirage ID
+   **************************************************************
+   **************************************************************/
 
   browserOpts = setWindowDimensions(browserOpts, defaults, windowState)
   browserOpts = setWindowPosition(browserOpts, defaults, windowState)
@@ -233,8 +246,22 @@ const createWindow = (action) => {
       mainWindow.setFullScreen(true)
     }
 
+    let restoredState
+
     mainWindow.webContents.on('did-finish-load', (e) => {
-      lastEmittedState = appState
+      /*****************************************************************
+       *****************************************************************
+       * Start Mirage ID
+       *****************************************************************/
+      if (typeof identity === 'undefined') {
+        lastEmittedState = appState
+        restoredState = action.restoredState
+      }
+      /*****************************************************************
+       * End Mirage ID
+       *****************************************************************
+       *****************************************************************/
+
       mainWindow.webContents.setZoomLevel(zoomLevel[toolbarUserInterfaceScale] || 0.0)
       e.sender.send(messages.INITIALIZE_WINDOW,
         {
@@ -251,7 +278,7 @@ const createWindow = (action) => {
          *****************************************************************
          *****************************************************************/
         frames,
-        action.restoredState)
+        restoredState)
       if (action.cb) {
         action.cb()
       }
