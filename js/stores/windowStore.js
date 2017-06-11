@@ -16,12 +16,9 @@ const messages = require('../constants/messages')
 const debounce = require('../lib/debounce')
 const getSetting = require('../settings').getSetting
 const UrlUtil = require('../lib/urlutil')
-const {getCurrentWindowId, isFocused} = require('../../app/renderer/currentWindow')
 const {l10nErrorText} = require('../../app/common/lib/httpUtil')
 const { makeImmutable } = require('../../app/common/state/immutableUtil')
 const {aboutUrls, getTargetAboutUrl, newFrameUrl} = require('../lib/appUrlUtil')
-const Serializer = require('../dispatcher/serializer')
-const {updateTabPageIndex} = require('../../app/renderer/lib/tabUtil')
 const assert = require('assert')
 const contextMenuState = require('../../app/common/state/contextMenuState')
 const appStoreRenderer = require('./appStoreRenderer')
@@ -98,7 +95,7 @@ const addToHistory = (frameProps) => {
   return history.slice(-10)
 }
 
-const newFrame = (state, frameOpts, openInForeground) => {
+const newFrame = (state, frameOpts) => {
   if (frameOpts === undefined) {
     frameOpts = {}
   }
@@ -117,12 +114,17 @@ const newFrame = (state, frameOpts, openInForeground) => {
   }
   frameOpts.partitionNumber = frameOpts.partitionNumber || 0
 
-  if (frameOpts.disposition) {
+  const active = frameOpts.active
+  delete frameOpts.active
+  delete frameOpts.openInForeground // clean up any legacy openInForeground props
+  let openInForeground = active
+
+  if (openInForeground == null && frameOpts.disposition) {
     openInForeground = frameOpts.disposition !== 'background-tab'
+    delete frameOpts.disposition
   }
 
-  const activeFrame = frameStateUtil.getActiveFrame(state)
-  if (openInForeground === undefined || !activeFrame) {
+  if (openInForeground == null || state.get('activeFrameKey') == null) {
     openInForeground = true
   }
 
@@ -183,10 +185,13 @@ const newFrame = (state, frameOpts, openInForeground) => {
   state = frameStateUtil.updateFramesInternalIndex(state, insertionIndex)
 
   if (openInForeground) {
-    const activeFrame = frameStateUtil.getActiveFrame(state)
-    const tabId = activeFrame.get('tabId')
-    state = updateTabPageIndex(state, activeFrame)
-    if (tabId) {
+    const tabId = frameOpts.tabId
+    const frame = frameStateUtil.getFrameByTabId(state, tabId)
+    state = frameStateUtil.updateTabPageIndex(state, frame)
+    if (active) {
+      // only set the activeFrameKey if the tab is already active
+      state = state.set('activeFrameKey', frame.get('key'))
+    } else {
       appActions.tabActivateRequested(tabId)
     }
   }
@@ -319,7 +324,7 @@ const doAction = (action) => {
         // For about:newtab we want to have the urlbar focused, not the new frame.
         // Otherwise we want to focus the new tab when it is a new frame in the foreground.
         if (action.location !== getTargetAboutUrl('about:newtab')) {
-          focusWebview(frameStateUtil.activeFrameStatePath(windowState))
+          focusWebview(statePath)
         }
         break
       }
@@ -369,7 +374,7 @@ const doAction = (action) => {
         windowState = windowState.setIn(['ui', 'tabs', 'tabPageIndex'], action.index)
         windowState = windowState.deleteIn(['ui', 'tabs', 'previewTabPageIndex'])
       } else {
-        windowState = updateTabPageIndex(windowState, action.frameProps)
+        windowState = frameStateUtil.updateTabPageIndex(windowState, action.frameProps)
       }
       break
     case windowConstants.WINDOW_SET_TAB_BREAKPOINT:
@@ -404,7 +409,7 @@ const doAction = (action) => {
         windowState = windowState.set('frames', frames)
         // Since the tab could have changed pages, update the tab page as well
         windowState = frameStateUtil.updateFramesInternalIndex(windowState, Math.min(sourceFrameIndex, newIndex))
-        windowState = updateTabPageIndex(windowState, frameStateUtil.getActiveFrame(windowState))
+        windowState = frameStateUtil.updateTabPageIndex(windowState, frameStateUtil.getActiveFrame(windowState))
         break
       }
     case windowConstants.WINDOW_SET_LINK_HOVER_PREVIEW:
@@ -698,7 +703,7 @@ const doAction = (action) => {
         action.frameOpts.tabId = tabValue.get('tabId')
         action.frameOpts.icon = action.frameOpts.icon || tabValue.get('favIconUrl')
       }
-      windowState = newFrame(windowState, action.frameOpts, action.frameOpts.openInForeground)
+      windowState = newFrame(windowState, action.frameOpts)
       break
     case windowConstants.WINDOW_FRAME_MOUSE_ENTER:
       windowState = windowState.setIn(['ui', 'mouseInFrame'], true)
@@ -795,26 +800,6 @@ frameShortcuts.forEach((shortcut) => {
       })
       emitChanges()
     })
-  }
-})
-
-const dispatchEventPayload = (e, payload) => {
-  let queryInfo = payload.queryInfo || payload.frameProps || {}
-  queryInfo = queryInfo.toJS ? queryInfo.toJS() : queryInfo
-  if (queryInfo.windowId === -2 && isFocused()) {
-    queryInfo.windowId = getCurrentWindowId()
-  }
-  // handle any ipc dispatches that are targeted to this window
-  if (queryInfo.windowId && queryInfo.windowId === getCurrentWindowId() && !queryInfo.alreadyHandledByRenderer) {
-    doAction(payload)
-  }
-}
-
-// Allows the parent process to dispatch window actions
-ipc.on(messages.DISPATCH_ACTION, (e, serializedPayload) => {
-  let payload = Serializer.deserialize(serializedPayload)
-  for (var i = 0; i < payload.length; i++) {
-    dispatchEventPayload(e, payload[i])
   }
 })
 

@@ -3,16 +3,26 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 const Immutable = require('immutable')
+
+// Constants
 const config = require('../constants/config')
-const {makeImmutable} = require('../../app/common/state/immutableUtil')
-const {isIntermediateAboutPage} = require('../lib/appUrlUtil')
-const urlParse = require('../../app/common/urlParse')
-const windowActions = require('../actions/windowActions.js')
-const webviewActions = require('../actions/webviewActions.js')
+const settings = require('../constants/settings')
+
+// Actions
+const windowActions = require('../actions/windowActions')
+const webviewActions = require('../actions/webviewActions')
 const appActions = require('../actions/appActions')
 
+// State
+const {makeImmutable} = require('../../app/common/state/immutableUtil')
+
+// Utils
+const {getSetting} = require('../settings')
+const {isIntermediateAboutPage} = require('../lib/appUrlUtil')
+const urlParse = require('../../app/common/urlParse')
+
 const comparatorByKeyAsc = (a, b) => a.get('key') > b.get('key')
-      ? 1 : b.get('key') > a.get('key') ? -1 : 0
+  ? 1 : b.get('key') > a.get('key') ? -1 : 0
 
 const matchFrame = (queryInfo, frame) => {
   queryInfo = queryInfo.toJS ? queryInfo.toJS() : queryInfo
@@ -294,14 +304,13 @@ const frameOptsFromFrame = (frame) => {
  */
 function addFrame (state, frameOpts, newKey, partitionNumber, openInForeground, insertionIndex) {
   const frames = state.get('frames')
-  const url = frameOpts.location || config.defaultUrl
 
-  // delayedLoadUrl is used as a placeholder when the new frame is created
-  // from a renderer initiated navigation (window.open, cmd/ctrl-click, etc...)
-  const delayedLoadUrl = frameOpts.delayedLoadUrl
-  delete frameOpts.delayedLoadUrl
+  const location = frameOpts.location // page url
+  const displayURL = frameOpts.displayURL == null ? location : frameOpts.displayURL
+  delete frameOpts.displayURL
 
-  const location = delayedLoadUrl || url // page url
+  const rendererInitiated = frameOpts.rendererInitiated
+  delete frameOpts.rendererInitiated
 
   // Only add pin requests if it's not already added
   const isPinned = frameOpts.isPinned
@@ -319,20 +328,19 @@ function addFrame (state, frameOpts, newKey, partitionNumber, openInForeground, 
     audioMuted: false, // frame is muted
     location,
     aboutDetails: undefined,
-    src: url, // what the iframe src should be
-    tabId: -1,
-    // if this is a delayed load then go ahead and start the loading indicator
-    loading: !!delayedLoadUrl,
-    startLoadTime: delayedLoadUrl ? new Date().getTime() : null,
+    src: location, // what the iframe src should be
+    tabId: frameOpts.tabId == null ? -1 : frameOpts.tabId,
+    loading: frameOpts.rendererInitiated,
+    startLoadTime: null,
     endLoadTime: null,
     lastAccessedTime: openInForeground ? new Date().getTime() : null,
     isPrivate: false,
     partitionNumber,
-    pinnedLocation: isPinned ? url : undefined,
+    pinnedLocation: isPinned ? location : undefined,
     key: newKey,
     navbar: {
       urlbar: {
-        location: url,
+        location: rendererInitiated ? location : displayURL,
         suggestions: {
           selectedIndex: 0,
           searchResults: [],
@@ -357,15 +365,9 @@ function addFrame (state, frameOpts, newKey, partitionNumber, openInForeground, 
     history: []
   }, frameOpts))
 
-  const result = {
+  return {
     frames: frames.splice(insertionIndex, 0, frame)
   }
-
-  if (openInForeground) {
-    result.activeFrameKey = newKey
-  }
-
-  return result
 }
 
 /**
@@ -435,8 +437,39 @@ function getTotalBlocks (frame) {
     : ((blocked > 99) ? '99+' : blocked)
 }
 
-const frameStatePath = (state, frameKey) =>
-  ['frames', getFrameIndex(state, frameKey)]
+/**
+ * Check if frame is pinned or not
+ */
+function isPinned (state, frameKey) {
+  const frame = getFrameByKey(state, frameKey)
+
+  return !!frame.get('pinnedLocation')
+}
+
+/**
+ * Updates the tab page index to the specified frameProps
+ * @param frameProps Any frame belonging to the page
+ */
+function updateTabPageIndex (state, frameProps) {
+  const index = getFrameTabPageIndex(state, frameProps, getSetting(settings.TABS_PER_PAGE))
+
+  if (index === -1) {
+    return state
+  }
+
+  state = state.setIn(['ui', 'tabs', 'tabPageIndex'], index)
+  state = state.deleteIn(['ui', 'tabs', 'previewTabPageIndex'])
+
+  return state
+}
+
+const frameStatePath = (state, frameKey) => {
+  const index = getFrameIndex(state, frameKey)
+  if (index === -1) {
+    return null
+  }
+  return ['frames', getFrameIndex(state, frameKey)]
+}
 
 const activeFrameStatePath = (state) => frameStatePath(state, getActiveFrameKey(state))
 
@@ -530,5 +563,7 @@ module.exports = {
   activeFrameStatePath,
   getLastCommittedURL,
   onFindBarHide,
-  getTotalBlocks
+  getTotalBlocks,
+  isPinned,
+  updateTabPageIndex
 }

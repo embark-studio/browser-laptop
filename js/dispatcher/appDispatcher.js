@@ -8,13 +8,25 @@ const async = require('async')
 const Serializer = require('./serializer')
 const messages = require('../constants/messages')
 let ipc
+let processType
+let currentWindow
+let BrowserWindow
 
-if (typeof chrome !== 'undefined') { // eslint-disable-line
+if (typeof window !== 'undefined' && window.location.protocol === 'chrome-extension:' && typeof chrome !== 'undefined' && typeof chrome.ipcRenderer === 'object') {
+  processType = 'extension-page'
   ipc = chrome.ipcRenderer // eslint-disable-line
-} else if (process.type === 'renderer') {
-  ipc = require('electron').ipcRenderer
-} else if (process.type === 'browser') {
-  ipc = require('electron').ipcMain
+} else if (typeof process !== 'undefined') {
+  if (process.type === 'renderer') {
+    processType = 'renderer'
+    ipc = require('electron').ipcRenderer
+    currentWindow = require('../../app/renderer/currentWindow')
+  } else if (process.type === 'browser') {
+    processType = 'browser'
+    BrowserWindow = require('electron').BrowserWindow
+    ipc = require('electron').ipcMain
+  }
+} else if (typeof chrome !== 'undefined' && typeof chrome.ipcRenderer === 'object') {
+  throw new Error('No ipc available in context')
 }
 
 class AppDispatcher {
@@ -89,26 +101,22 @@ class AppDispatcher {
   }
 
   dispatchInternal (payload, cb) {
-    if (process.type === 'renderer') {
-      if (window.location.protocol === 'chrome-extension:') {
-        cb()
-        ipcCargo.push(payload)
-        return
-      } else {
-        const {getCurrentWindowId} = require('../../app/renderer/currentWindow')
-        if (!payload.queryInfo || !payload.queryInfo.windowId || payload.queryInfo.windowId === getCurrentWindowId()) {
-          this.dispatchToOwnRegisteredCallbacks(payload)
-          // We still want to tell the browser prcoess about app actions for payloads with a windowId
-          // specified for the current window, but we don't want the browser process to forward it back
-          // to us.
-          if (payload.queryInfo) {
-            payload.queryInfo.alreadyHandledByRenderer = payload.queryInfo.windowId === getCurrentWindowId()
-          }
-        }
-        cb()
-        ipcCargo.push(payload)
-        return
+    if (processType === 'extension-page') {
+      cb()
+      ipcCargo.push(payload)
+      return
+    }
+    if (processType === 'renderer') {
+      // only handle actions that are for this window
+      if (!payload.queryInfo || payload.queryInfo.windowId == null || payload.queryInfo.windowId === currentWindow.getCurrentWindowId()) {
+        this.dispatchToOwnRegisteredCallbacks(payload)
       }
+      // only forward actions that have not been relayed through the browser process
+      if (!payload.sentFromBrowser) {
+        cb()
+        ipcCargo.push(payload)
+      }
+      return
     }
 
     this.dispatchToOwnRegisteredCallbacks(payload)
@@ -146,9 +154,13 @@ const ipcCargo = async.cargo((tasks, callback) => {
   callback()
 }, 200)
 
-if (process.type === 'browser') {
+if (processType === 'browser') {
   ipc.on('app-dispatcher-register', (event) => {
-    let registrant = event.sender
+    const registrant = event.sender
+    const hostWebContents = event.sender.hostWebContents || event.sender
+    const win = BrowserWindow.fromWebContents(hostWebContents)
+    const windowId = win.id
+
     const registrantCargo = async.cargo((tasks, callback) => {
       if (!registrant.isDestroyed()) {
         registrant.send(messages.DISPATCH_ACTION, Serializer.serialize(tasks))
@@ -161,6 +173,23 @@ if (process.type === 'browser') {
         if (registrant.isDestroyed()) {
           appDispatcher.unregister(callback)
         } else {
+          // don't forward to windows unless queryInfo exists
+          if (!payload.queryInfo) {
+            return
+          }
+
+          // don't forward messages from other windows unless they have a windowId
+          if (payload.queryInfo.windowId == null && payload.senderWindowId != null) {
+            return
+          }
+
+          // only forward to the destination windowId and only if it wasn't the sender
+          if (payload.queryInfo.windowId != null) {
+            if (payload.queryInfo.windowId !== windowId || payload.senderWindowId === windowId) {
+              return
+            }
+          }
+          payload.sentFromBrowser = true
           registrantCargo.push(payload)
         }
       } catch (e) {
@@ -183,7 +212,7 @@ if (process.type === 'browser') {
     if (!sender.isDestroyed()) {
       const hostWebContents = sender.hostWebContents
       sender = hostWebContents || sender
-      const win = require('electron').BrowserWindow.fromWebContents(sender)
+      const win = BrowserWindow.fromWebContents(sender)
 
       if (hostWebContents) {
         // received from an extension
@@ -191,24 +220,45 @@ if (process.type === 'browser') {
         // because other messages come from the main window
 
         // default to the windowId of the hostWebContents
-        if (!queryInfo.windowId && win) {
+        if (queryInfo.windowId == null && win) {
           queryInfo.windowId = win.id
         }
-      }
-      payload.queryInfo = queryInfo
-      if (win) {
+      } else if (win) {
+        // don't set the senderWindowId for tabs because it will prevent them
+        // from being routed back to the window process
         payload.senderWindowId = win.id
       }
-      payload.senderTabId = event.sender.getId()
+      payload.queryInfo = queryInfo
+      payload.tabId = payload.tabId == null ? event.sender.getId() : payload.tabId
+
+      if (queryInfo.windowId === -2) {
+        const activeWindow = BrowserWindow.getActiveWindow()
+        queryInfo.windowId = activeWindow ? activeWindow.id : undefined
+      }
     }
     appDispatcher.dispatch(payload)
   }
 
+  process.on(messages.DISPATCH_ACTION, (action) => {
+    appDispatcher.dispatch(action)
+  })
+
   ipc.on(messages.DISPATCH_ACTION, (event, payload) => {
     payload = Serializer.deserialize(payload)
 
+    if (payload.forEach === undefined) {
+      dispatchEventPayload(event, payload)
+    }
+
     for (var i = 0; i < payload.length; i++) {
       dispatchEventPayload(event, payload[i])
+    }
+  })
+} else if (processType === 'renderer') {
+  ipc.on(messages.DISPATCH_ACTION, (e, serializedPayload) => {
+    let payload = Serializer.deserialize(serializedPayload)
+    for (var i = 0; i < payload.length; i++) {
+      appDispatcher.dispatch(payload[i])
     }
   })
 }

@@ -10,6 +10,7 @@ const globalStyles = require('../../app/renderer/components/styles/global')
 // Stylesheets go here
 require('../../less/button.less')
 require('../../less/forms.less')
+require('../../node_modules/font-awesome/css/font-awesome.css')
 
 const {Textbox, FormTextbox, SettingTextbox, RecoveryKeyTextbox} = require('../../app/renderer/components/common/textbox')
 const {TextArea, DefaultTextArea} = require('../../app/renderer/components/common/textbox')
@@ -261,32 +262,19 @@ class AboutStyle extends ImmutableComponent {
           &lt;BrowserButton secondaryColor l10nId='secondaryColor' onClick={'{this.onRemoveBookmark}'} />
         </Code></Pre>
 
-        {
-          /* TODO: I don't think we really need it. Once we confirm by removing
-            legacy button styles, remove this as well */
-        }
-        <button data-l10n-id='inlineButton' className='browserButton whiteButton inlineButton' onClick={this.onRemoveBookmark} />
-        <Pre><Code>
-          &lt;button data-l10n-id='inlineButton' className='browserButton whiteButton inlineButton'{'\n'}
-          onClick={'{this.onRemoveBookmark}'} />
-        </Code></Pre>
-
-        {/* TODO: This button size doesn't match its name */}
-        <button data-l10n-id='smallButton' className='browserButton whiteButton smallButton' onClick={this.onRemoveBookmark} />
-        <Pre><Code>
-          &lt;button data-l10n-id='done' className='browserButton whiteButton smallButton'{'\n'}
-          onClick={'{this.onRemoveBookmark}'} />
-        </Code></Pre>
-
         <BrowserButton primaryColor l10nId='primaryColor' onClick={this.onRemoveBookmark} />
         <Pre><Code>
-          &lt;BrowserButton l10nId='cancel' onClick={'{this.onRemoveBookmark}'} />
+          &lt;BrowserButton primaryColor l10nId='cancel' onClick={'{this.onRemoveBookmark}'} />
         </Code></Pre>
 
-        <button data-l10n-id='actionButton' className='browserButton actionButton' onClick={this.onRemoveBookmark} />
+        <BrowserButton secondaryColor l10nId='secondaryColor' onClick={this.onRemoveBookmark} />
         <Pre><Code>
-          &lt;button data-l10n-id='done' className='browserButton actionButton'{'\n'}
-          onClick={'{this.onRemoveBookmark}'} />
+          &lt;BrowserButton secondaryColor l10nId='secondaryColor' onClick={'{this.onRemoveBookmark}'} />
+        </Code></Pre>
+
+        <BrowserButton actionItem l10nId='actionButton' onClick={this.onRemoveBookmark} />
+        <Pre><Code>
+          &lt;BrowserButton actionItem l10nId='done' onClick={'{this.onRemoveBookmark}'} />
         </Code></Pre>
 
         <BrowserButton subtleItem l10nId='subtleButton' onClick={this.onRemoveBookmark} />
@@ -294,9 +282,9 @@ class AboutStyle extends ImmutableComponent {
           &lt;BrowserButton subtleItem l10nId='cancel' onClick={'{this.onRemoveBookmark}'} />
         </Code></Pre>
 
-        <BrowserButton primaryColor groupedItem l10nId='primaryButton' onClick={this.onRemoveBookmark} />
-        <BrowserButton secondaryColor groupedItem l10nId='whiteButton' onClick={this.onRemoveBookmark} />
-        <BrowserButton primaryColor groupedItem l10nId='primaryButton' onClick={this.onRemoveBookmark} />
+        <BrowserButton primaryColor groupedItem l10nId='primaryColor' onClick={this.onRemoveBookmark} />
+        <BrowserButton secondaryColor groupedItem l10nId='secondaryColor' onClick={this.onRemoveBookmark} />
+        <BrowserButton primaryColor groupedItem l10nId='primaryColor' onClick={this.onRemoveBookmark} />
         <Pre><Code>
           &lt;BrowserButton primaryColor groupedItem l10nId='cancel' onClick={'{this.onRemoveBookmark}'} />{'\n'}
           &lt;BrowserButton secondaryColor groupedItem l10nId='cancel' onClick={'{this.onRemoveBookmark}'} />{'\n'}
@@ -308,9 +296,20 @@ class AboutStyle extends ImmutableComponent {
           &lt;BrowserButton extensionItem l10nId='cancel' onClick={'{this.onRemoveBookmark}'} />
         </Code></Pre>
 
-        <BrowserButton notificationItem l10nId='notificationItem' onClick={this.onRemoveBookmark} />
+        <BrowserButton secondaryColor notificationItem groupedItem l10nId='notificationItem' onClick={this.onRemoveBookmark} />
+        <BrowserButton secondaryColor notificationItem groupedItem l10nId='notificationItem' onClick={this.onRemoveBookmark} />
         <Pre><Code>
-          &lt;BrowserButton notificationItem l10nId='cancel' onClick={'{this.onRemoveBookmark}'} />
+          &lt;BrowserButton secondaryColor notificationItem groupedItem l10nId='Yes' onClick={'{this.onRemoveBookmark}'} />{'\n'}
+          &lt;BrowserButton secondaryColor notificationItem groupedItem l10nId='No' onClick={'{this.onRemoveBookmark}'} />
+        </Code></Pre>
+
+        <BrowserButton iconOnly iconClass={globalStyles.appIcons.moreInfo} size='30px' color='rebeccapurple' />
+        <BrowserButton iconOnly iconClass={globalStyles.appIcons.closeTab} size='45px' color='#c1c1c1' />
+        <BrowserButton iconOnly iconClass={globalStyles.appIcons.private} size='60px' color='red' />
+        <Pre><Code>
+          &lt;BrowserButton iconOnly icon={'{'}globalStyles.appIcons.private{'}'} size='30px' color='rebeccapurple' />{'\n'}
+          &lt;BrowserButton iconOnly icon={'{'}globalStyles.appIcons.private{'}'} size='45px' color='#c1c1c1' />{'\n'}
+          &lt;BrowserButton iconOnly icon={'{'}globalStyles.appIcons.private{'}'} size='60px' color='red' />
         </Code></Pre>
 
         <GoTop />
@@ -704,15 +703,18 @@ const styles = StyleSheet.create({
 
   wrapper: common,
   container: common,
+
   pre: {
     background: '#1d1f21',
-    color: '#FFFFFF',
+    color: '#fff',
     fontSize: '14px',
-    padding: '5px',
+    padding: '1rem',
     borderRadius: globalStyles.radius.borderRadius,
     tabSize: '2',
-    wordBreak: 'normal'
+    wordBreak: 'normal',
+    overflowX: 'scroll'
   },
+
   code: {
     fontFamily: 'monospace',
     whiteSpace: 'pre'

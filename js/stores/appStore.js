@@ -406,6 +406,7 @@ function handleChangeSettingAction (settingKey, settingValue) {
 }
 
 let reducers = []
+let ledger = null
 
 const applyReducers = (state, action, immutableAction) => reducers.reduce(
     (appState, reducer) => {
@@ -416,9 +417,8 @@ const applyReducers = (state, action, immutableAction) => reducers.reduce(
     }, appState)
 
 const handleAppAction = (action) => {
-  const ledger = require('../../app/ledger')
-
   if (action.actionType === appConstants.APP_SET_STATE) {
+    ledger = require('../../app/ledger')
     reducers = [
       require('../../app/browser/reducers/downloadsReducer'),
       require('../../app/browser/reducers/flashReducer'),
@@ -471,17 +471,6 @@ const handleAppAction = (action) => {
       break
     case appConstants.APP_NEW_WINDOW:
       createWindow(action)
-      break
-    case appConstants.APP_REMOVE_PASSWORD:
-      autofill.removeLogin(action.passwordDetail.toJS())
-      break
-    case appConstants.APP_REMOVE_PASSWORD_SITE:
-      let newPasswordDetail = action.passwordDetail.toJS()
-      delete newPasswordDetail['blacklisted_by_user']
-      autofill.updateLogin(newPasswordDetail)
-      break
-    case appConstants.APP_CLEAR_PASSWORDS:
-      autofill.clearLogins()
       break
     case appConstants.APP_CHANGE_NEW_TAB_DETAIL:
       appState = aboutNewTabState.mergeDetails(appState, action)
@@ -841,7 +830,7 @@ const handleAppAction = (action) => {
       appState = appState.set('defaultBrowserCheckComplete', {})
       break
     case windowConstants.WINDOW_SET_FAVICON:
-      appState = appState.set('sites', siteUtil.updateSiteFavicon(appState.get('sites'), action.frameProps.get('location'), action.favicon))
+      appState = siteUtil.updateSiteFavicon(appState, action.frameProps.get('location'), action.favicon)
       appState = aboutNewTabState.setSites(appState, action)
       break
     case appConstants.APP_RENDER_URL_TO_PDF:
@@ -853,6 +842,10 @@ const handleAppAction = (action) => {
       if (obj && obj.constructor === Immutable.Map) {
         appState = appState.setIn(action.objectPath.concat(['objectId']),
           action.objectId)
+        // Update the site cache if this is a site
+        if (action.objectPath[0] === 'sites') {
+          appState = syncUtil.updateSiteCache(appState, obj)
+        }
       }
       break
     case appConstants.APP_SAVE_SYNC_DEVICES:

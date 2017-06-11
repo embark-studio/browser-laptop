@@ -7,7 +7,7 @@ const Immutable = require('immutable')
 
 // Components
 const ImmutableComponent = require('../immutableComponent')
-const Button = require('../common/button')
+const BrowserButton = require('../common/browserButton')
 const SwitchControl = require('../common/switchControl')
 
 // Constants
@@ -22,6 +22,8 @@ const windowStore = require('../../../../js/stores/windowStore')
 // Utils
 const contextMenus = require('../../../../js/contextMenus')
 const {getTextColorForBackground} = require('../../../../js/lib/color')
+
+const globalStyles = require('../styles/global')
 
 class FindBar extends ImmutableComponent {
   constructor () {
@@ -236,23 +238,27 @@ class FindBar extends ImmutableComponent {
             onClick={this.onClear} />
         </div>
         <span className='findMatchText'>{findMatchText}</span>
-        <Button iconClass='findButton fa-caret-up'
+        <BrowserButton iconOnly
+          iconClass={globalStyles.appIcons.findPrev}
           inlineStyles={findBarStyle}
-          className='findButton smallButton findPrev'
+          testId='findBarPrevButton'
           disabled={this.numberOfMatches <= 0}
-          onClick={this.onFindPrev} />
-        <Button iconClass='findButton fa-caret-down'
+          onClick={this.onFindPrev}
+        />
+        <BrowserButton iconOnly
+          iconClass={globalStyles.appIcons.findNext}
           inlineStyles={findBarStyle}
-          className='findButton smallButton findNext'
+          testId='findBarNextButton'
           disabled={this.numberOfMatches <= 0}
-          onClick={this.onFindNext} />
+          onClick={this.onFindNext}
+        />
         <SwitchControl
           id='caseSensitivityCheckbox'
           checkedOn={this.isCaseSensitive}
           onClick={this.onCaseSensitivityChange} />
         <label htmlFor='caseSensitivityCheckbox' data-l10n-id='caseSensitivity' style={findBarTextStyle} />
       </div>
-      <span className='findButton closeButton'
+      <span className='closeButton'
         style={findBarTextStyle}
         onClick={this.props.onFindHide}>+</span>
     </div>

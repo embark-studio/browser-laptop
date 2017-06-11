@@ -1,7 +1,8 @@
-/* global describe, before, it, beforeEach */
-const frameStateUtil = require('../../../js/state/frameStateUtil')
+/* global describe, before, it, beforeEach, after */
 const Immutable = require('immutable')
+const mockery = require('mockery')
 const assert = require('assert')
+const fakeElectron = require('../lib/fakeElectron')
 
 require('../braveUnit')
 
@@ -12,8 +13,102 @@ const defaultWindowStore = Immutable.fromJS({
 })
 
 describe('frameStateUtil', function () {
+  let frameStateUtil
+
   before(function () {
+    mockery.enable({
+      warnOnReplace: false,
+      warnOnUnregistered: false,
+      useCleanCache: true
+    })
+    mockery.registerMock('electron', fakeElectron)
+    frameStateUtil = require('../../../js/state/frameStateUtil')
     this.windowState = Immutable.fromJS(Object.assign({}, defaultWindowStore.toJS()))
+  })
+
+  after(function () {
+    mockery.disable()
+  })
+
+  describe('getFrameIndex', function () {
+    before(function () {
+      this.frames = Immutable.fromJS([
+        {
+          key: 1
+        },
+        {
+          key: 2
+        }
+      ])
+      this.framesInternal = Immutable.fromJS({
+        index: {
+          1: 0,
+          2: 1
+        }
+      })
+      this.windowState = this.windowState.set('frames', this.frames)
+      this.windowState = this.windowState.set('framesInternal', this.framesInternal)
+    })
+
+    it('returns the index by frame key', function () {
+      assert.equal(0, frameStateUtil.getFrameIndex(this.windowState, 1))
+      assert.equal(1, frameStateUtil.getFrameIndex(this.windowState, 2))
+      assert.equal(-1, frameStateUtil.getFrameIndex(this.windowState, 3))
+    })
+  })
+
+  describe('frameStatePath', function () {
+    before(function () {
+      this.frames = Immutable.fromJS([
+        {
+          key: 1
+        },
+        {
+          key: 2
+        }
+      ])
+      this.framesInternal = Immutable.fromJS({
+        index: {
+          1: 0,
+          2: 1
+        }
+      })
+      this.windowState = this.windowState.set('frames', this.frames)
+      this.windowState = this.windowState.set('framesInternal', this.framesInternal)
+    })
+
+    it('returns the index by frame key', function () {
+      assert.deepEqual(['frames', 0], frameStateUtil.frameStatePath(this.windowState, 1))
+      assert.deepEqual(['frames', 1], frameStateUtil.frameStatePath(this.windowState, 2))
+      assert.equal(null, frameStateUtil.frameStatePath(this.windowState, 3))
+    })
+  })
+
+  describe('getIndexByTabId', function () {
+    before(function () {
+      this.frames = Immutable.fromJS([
+        {
+          tabId: 2
+        },
+        {
+          tabId: 3
+        }
+      ])
+      this.framesInternal = Immutable.fromJS({
+        tabIndex: {
+          2: 0,
+          3: 1
+        }
+      })
+      this.windowState = this.windowState.set('frames', this.frames)
+      this.windowState = this.windowState.set('framesInternal', this.framesInternal)
+    })
+
+    it('returns the index by frame key', function () {
+      assert.equal(0, frameStateUtil.getIndexByTabId(this.windowState, 2))
+      assert.equal(1, frameStateUtil.getIndexByTabId(this.windowState, 3))
+      assert.equal(-1, frameStateUtil.getIndexByTabId(this.windowState, 4))
+    })
   })
 
   describe('query', function () {

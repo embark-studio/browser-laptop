@@ -5,14 +5,21 @@
 'use strict'
 
 const Immutable = require('immutable')
+
+// Constants
 const appConstants = require('../../../js/constants/appConstants')
-const windowActions = require('../../../js/actions/windowActions')
 const windowConstants = require('../../../js/constants/windowConstants')
-const frameStateUtil = require('../../../js/state/frameStateUtil')
-const appActions = require('../../../js/actions/appActions')
 const config = require('../../../js/constants/config')
-const {updateTabPageIndex} = require('../lib/tabUtil')
+
+// Actions
+const appActions = require('../../../js/actions/appActions')
+const windowActions = require('../../../js/actions/windowActions')
+
+// Utils
+const frameStateUtil = require('../../../js/state/frameStateUtil')
 const {getCurrentWindowId} = require('../currentWindow')
+const {getSourceAboutUrl, getSourceMagnetUrl} = require('../../../js/lib/appUrlUtil')
+const {isURL, isPotentialPhishingUrl, getUrlFromInput} = require('../../../js/lib/urlutil')
 
 const setFullScreen = (state, action) => {
   const index = frameStateUtil.getFrameIndex(state, action.frameProps.get('key'))
@@ -42,14 +49,34 @@ const closeFrame = (state, action) => {
   if (state.get('frames', Immutable.List()).size === 0) {
     appActions.closeWindow(getCurrentWindowId())
   }
-  // Copy the hover state if tab closed with mouse as long as we have a next frame
-  // This allow us to have closeTab button visible  for sequential frames closing, until onMouseLeave event happens.
+
   const nextFrame = frameStateUtil.getFrameByIndex(state, index)
-  if (hoverState && nextFrame) {
-    windowActions.setTabHoverState(nextFrame.get('key'), hoverState)
+
+  if (nextFrame) {
+    // After closing a tab, preview the next frame as long as there is one
+    windowActions.setPreviewFrame(nextFrame.get('key'))
+    // Copy the hover state if tab closed with mouse as long as we have a next frame
+    // This allow us to have closeTab button visible for sequential frames closing,
+    // until onMouseLeave event happens.
+    if (hoverState) {
+      windowActions.setTabHoverState(nextFrame.get('key'), hoverState)
+    }
   }
 
   return state
+}
+
+const getLocation = (location) => {
+  location = location.trim()
+  location = getSourceAboutUrl(location) ||
+    getSourceMagnetUrl(location) ||
+    location
+
+  if (isURL(location)) {
+    location = getUrlFromInput(location)
+  }
+
+  return location
 }
 
 const frameReducer = (state, action, immutableAction) => {
@@ -99,9 +126,44 @@ const frameReducer = (state, action, immutableAction) => {
           })
           state = state.setIn(['frames', index, 'lastAccessedTime'], new Date().getTime())
           state = state.deleteIn(['ui', 'tabs', 'previewTabPageIndex'])
-          state = updateTabPageIndex(state, frame)
+          state = frameStateUtil.updateTabPageIndex(state, frame)
         }
       }
+      break
+    case windowConstants.WINDOW_SET_NAVIGATED:
+      // For about: URLs, make sure we store the URL as about:something
+      // and not what we map to.
+      action.location = getLocation(action.location)
+
+      const key = action.key
+      const framePath = frameStateUtil.frameStatePath(state, key)
+      if (!framePath) {
+        break
+      }
+      state = state.mergeIn(framePath, {
+        location: action.location
+      })
+      if (!action.isNavigatedInPage) {
+        state = state.mergeIn(framePath, {
+          adblock: {},
+          audioPlaybackActive: false,
+          computedThemeColor: undefined,
+          httpsEverywhere: {},
+          icon: undefined,
+          location: action.location,
+          noScript: {},
+          themeColor: undefined,
+          title: '',
+          trackingProtection: {},
+          fingerprintingProtection: {}
+        })
+      }
+
+      // For potential phishing pages, show a warning
+      if (isPotentialPhishingUrl(action.location)) {
+        state = state.setIn(['ui', 'siteInfo', 'isVisible'], true)
+      }
+
       break
     case windowConstants.WINDOW_CLOSE_FRAMES:
       let closedFrames = new Immutable.List()

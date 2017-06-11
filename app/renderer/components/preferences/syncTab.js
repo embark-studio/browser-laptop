@@ -22,6 +22,7 @@ const {
 } = require('../common/sectionTitle')
 
 const aboutActions = require('../../../../js/about/aboutActions')
+const tabActions = require('../../../common/actions/tabActions')
 const getSetting = require('../../../../js/settings').getSetting
 const settings = require('../../../../js/constants/settings')
 
@@ -396,7 +397,7 @@ class SyncTab extends ImmutableComponent {
 
   retry () {
     aboutActions.reloadSyncExtension()
-    window.location.reload()
+    tabActions.reload()
   }
 
   setupSyncProfile (isRestoring) {
@@ -430,6 +431,15 @@ class SyncTab extends ImmutableComponent {
       }
     }
     window.alert('Invalid input code; please try again or create a new profile.')
+  }
+
+  componentDidUpdate () {
+    if (!this.isSetup && this.props.syncStartOverlayVisible) {
+      this.deviceNameInput.focus()
+    }
+    if (!this.isSetup && this.props.syncAddOverlayVisible) {
+      this.passphraseInput.focus()
+    }
   }
 
   render () {

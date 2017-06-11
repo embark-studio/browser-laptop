@@ -240,7 +240,9 @@ const globalStyles = {
     exclude: 'fa fa-ban',
     trash: 'fa fa-trash',
     moreInfo: 'fa fa-info-circle',
-    angleDoubleRight: 'fa fa-angle-double-right'
+    angleDoubleRight: 'fa fa-angle-double-right',
+    findPrev: 'fa fa-caret-up',
+    findNext: 'fa fa-caret-down'
   },
   animations: {
     subtleShowUp: {
@@ -283,6 +285,11 @@ const globalStyles = {
     subtle: {
       // cf: https://github.com/brave/browser-laptop/blob/548e11b1c889332fadb379237555625ad2a3c845/less/button.less#L151
       backgroundColor: '#ccc'
+    },
+
+    action: {
+      backgroundColor: '#4099FF',
+      hoverColor: '#000'
     }
   },
 
@@ -290,9 +297,10 @@ const globalStyles = {
     color: '#3b3b3b',
 
     header: {
-      color: '#fff',
+      color: '#fafafa',
       background: '#808080',
-      switchControlTopTextColor: '#d3d3d3'
+      switchControlTopTextColor: '#d3d3d3',
+      border: '1px solid #aaa'
     },
 
     stats: {

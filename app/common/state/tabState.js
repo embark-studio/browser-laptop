@@ -2,11 +2,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const { makeImmutable, isMap, isList } = require('./immutableUtil')
 const Immutable = require('immutable')
 const assert = require('assert')
+
+// State
 const frameState = require('./frameState')
 const windowState = require('./windowState')
+
+// utils
+const { makeImmutable, isMap, isList } = require('./immutableUtil')
 // this file should eventually replace frameStateUtil
 const frameStateUtil = require('../../../js/state/frameStateUtil')
 const {isLocationBookmarked} = require('../../../js/state/siteUtil')
@@ -490,10 +494,6 @@ const tabState = {
     }
   },
 
-  isPinned: (state, tabId) => {
-    return tabState.getTabPropertyByTabId(state, tabId, 'pinned', false)
-  },
-
   getTitle: (state, tabId) => {
     return tabState.getTabPropertyByTabId(state, tabId, 'title', '')
   },
@@ -596,6 +596,35 @@ const tabState = {
     state = tabState.removeTabField(state, 'frame')
     state = state.delete('tabsInternal')
     return state.delete('tabs')
+  },
+
+  setNavigationState: (state, tabId, navigationState) => {
+    const tabValue = tabState.getByTabId(state, tabId)
+    if (!tabValue) {
+      return state
+    }
+    const path = tabState.getPathByTabId(state, tabId).push('navigationState')
+    return state.setIn(path, navigationState)
+  },
+
+  getNavigationState: (state, tabId) => {
+    const path = tabState.getPathByTabId(state, tabId)
+    return path ? state.getIn(path.push('navigationState'), Immutable.Map()) : null
+  },
+
+  getVisibleEntry: (state, tabId) => {
+    const navigationState = tabState.getNavigationState(state, tabId)
+    return navigationState ? navigationState.get('visibleEntry', '') : null
+  },
+
+  getVisibleURL: (state, tabId) => {
+    const entry = tabState.getVisibleEntry(state, tabId)
+    return entry ? entry.get('url') : ''
+  },
+
+  getVisibleVirtualURL: (state, tabId) => {
+    const entry = tabState.getVisibleEntry(state, tabId)
+    return entry ? entry.get('virtualURL') : ''
   }
 }
 

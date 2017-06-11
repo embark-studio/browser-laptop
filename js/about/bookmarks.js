@@ -15,7 +15,7 @@ const cx = require('../lib/classSet')
 const SortableTable = require('../../app/renderer/components/common/sortableTable')
 const siteUtil = require('../state/siteUtil')
 const formatUtil = require('../../app/common/lib/formatUtil')
-const iconSize = require('../../app/common/lib/faviconUtil').iconSize
+const {iconSize} = require('../constants/config')
 
 const ipc = window.chrome.ipcRenderer
 
@@ -59,9 +59,8 @@ class BookmarkFolderItem extends React.Component {
    */
   moveBookmark (e, bookmark) {
     if (siteUtil.isMoveAllowed(this.props.allBookmarkFolders, bookmark, this.props.bookmarkFolder)) {
-      const bookmarkSiteKey = siteUtil.getSiteKey(bookmark.toJS())
-      const bookmarkFolderSiteKey = siteUtil.getSiteKey(this.props.bookmarkFolder.toJS())
-
+      const bookmarkSiteKey = siteUtil.getSiteKey(bookmark)
+      const bookmarkFolderSiteKey = siteUtil.getSiteKey(this.props.bookmarkFolder)
       aboutActions.moveSite(bookmarkSiteKey,
         bookmarkFolderSiteKey,
         dndData.shouldPrependVerticalItem(e.target, e.clientY),

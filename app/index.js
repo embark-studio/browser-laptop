@@ -195,6 +195,13 @@ const initiateSessionStateSave = () => {
   })
 }
 
+// exit cleanly on signals
+['SIGTERM', 'SIGHUP', 'SIGINT', 'SIGBREAK'].forEach((signal) => {
+  process.on(signal, () => {
+    app.quit()
+  })
+})
+
 let loadAppStatePromise = SessionStore.loadAppState()
 
 // Some settings must be set right away on startup, those settings should be handled here.
@@ -311,6 +318,7 @@ app.on('ready', () => {
 
   process.on(messages.UNDO_CLOSED_WINDOW, () => {
     if (lastWindowState) {
+      SessionStore.cleanPerWindowData(lastWindowState)
       appActions.newWindow(undefined, undefined, lastWindowState)
       lastWindowState = undefined
     }
@@ -380,6 +388,8 @@ app.on('ready', () => {
       }))
     }
 
+    // DO NOT TO THIS LIST
+    // using ipcMain.on is deprecated and should be replaced by actions/reducers
     ipcMain.on(messages.PREFS_RESTART, (e, config, value) => {
       var message = locale.translation('prefsRestart')
       if (prefsRestartLastValue[config] !== undefined && prefsRestartLastValue[config] !== value) {
@@ -466,6 +476,7 @@ app.on('ready', () => {
     ipcMain.on(messages.EXPORT_BOOKMARKS, () => {
       BookmarksExporter.showDialog(AppStore.getState().get('sites'))
     })
+    // DO NOT TO THIS LIST - see above
 
     // We need the initial state to read the UPDATE_TO_PREVIEW_RELEASES preference
     loadAppStatePromise.then((initialState) => {

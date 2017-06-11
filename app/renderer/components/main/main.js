@@ -13,7 +13,7 @@ const appActions = require('../../../../js/actions/appActions')
 const windowActions = require('../../../../js/actions/windowActions')
 const webviewActions = require('../../../../js/actions/webviewActions')
 const contextMenus = require('../../../../js/contextMenus')
-const getSetting = require('../../../../js/settings').getSetting
+const {getSetting} = require('../../../../js/settings')
 
 // Components
 const Navigator = require('../navigation/navigator')
@@ -31,7 +31,7 @@ const ImportBrowserDataPanel = require('./importBrowserDataPanel')
 const WidevinePanel = require('./widevinePanel')
 const AutofillAddressPanel = require('../autofill/autofillAddressPanel')
 const AutofillCreditCardPanel = require('../autofill/autofillCreditCardPanel')
-const AddEditBookmark = require('../bookmarks/addEditBookmark')
+const AddEditBookmarkHanger = require('../bookmarks/addEditBookmarkHanger')
 const LoginRequired = require('./loginRequired')
 const ReleaseNotes = require('./releaseNotes')
 const BookmarksToolbar = require('../bookmarks/bookmarksToolbar')
@@ -58,7 +58,8 @@ const defaultBrowserState = require('../../../common/state/defaultBrowserState')
 const shieldState = require('../../../common/state/shieldState')
 const siteSettingsState = require('../../../common/state/siteSettingsState')
 const menuBarState = require('../../../common/state/menuBarState')
-const windowState = require('../../../common/state/windowState.js')
+const windowState = require('../../../common/state/windowState')
+const windowStore = require('../../../../js/stores/windowStore')
 
 // Util
 const _ = require('underscore')
@@ -84,7 +85,6 @@ class Main extends ImmutableComponent {
     this.onHideNoScript = this.onHideNoScript.bind(this)
     this.onHideReleaseNotes = this.onHideReleaseNotes.bind(this)
     this.onHideCheckDefaultBrowserDialog = this.onHideCheckDefaultBrowserDialog.bind(this)
-    this.onHamburgerMenu = this.onHamburgerMenu.bind(this)
     this.onTabContextMenu = this.onTabContextMenu.bind(this)
     this.onFind = this.onFind.bind(this)
     this.onFindHide = this.onFindHide.bind(this)
@@ -337,6 +337,8 @@ class Main extends ImmutableComponent {
     this.registerWindowLevelShortcuts()
     this.registerCustomTitlebarHandlers()
 
+    // DO NOT ADD TO THIS LIST
+    // ipc.on is deprecated and should be replaced by actions/reducers
     ipc.on(messages.LEAVE_FULL_SCREEN, this.exitFullScreen.bind(this))
 
     ipc.on(messages.DEBUG_REACT_PROFILE, (e, args) => {
@@ -454,6 +456,7 @@ class Main extends ImmutableComponent {
       windowActions.setImportBrowserDataDetail(detail)
       windowActions.setImportBrowserDataSelected({})
     })
+    // DO NOT ADD TO THIS LIST - see above
 
     this.loadSearchProviders()
 
@@ -503,6 +506,22 @@ class Main extends ImmutableComponent {
       self.resetAltMenuProcessing()
       windowActions.onBlur(getCurrentWindowId())
     }
+
+    windowStore.addChangeListener(function () {
+      const paymentsEnabled = getSetting(settings.PAYMENTS_ENABLED)
+      if (paymentsEnabled) {
+        const windowState = self.props.windowState
+        const tabs = windowState && windowState.get('tabs')
+        if (tabs) {
+          try {
+            const presentP = tabs.some((tab) => {
+              return tab.get('location') === 'about:preferences#payments'
+            })
+            ipc.send(messages.LEDGER_PAYMENTS_PRESENT, presentP)
+          } catch (ex) { }
+        }
+      }
+    })
   }
 
   checkForTitleMode () {
@@ -525,11 +544,6 @@ class Main extends ImmutableComponent {
     if (shieldState.braveShieldsEnabled(activeFrame)) {
       windowActions.setBraveryPanelDetail({})
     }
-  }
-
-  onHamburgerMenu (e) {
-    const activeFrame = frameStateUtil.getActiveFrame(this.props.windowState)
-    contextMenus.onHamburgerMenu((activeFrame && activeFrame.get('location')) || '', e)
   }
 
   onHideSiteInfo () {
@@ -695,7 +709,6 @@ class Main extends ImmutableComponent {
 
     const notifications = this.props.appState.get('notifications')
     const hasNotifications = notifications && notifications.size
-    const notificationBarOrigin = notifications.map(bar => bar.get('frameOrigin'))
 
     return <div id='window'
       className={cx({
@@ -784,17 +797,13 @@ class Main extends ImmutableComponent {
         }
         {
           this.props.windowState.get('bookmarkDetail') && !this.props.windowState.getIn(['bookmarkDetail', 'isBookmarkHanger'])
-          ? <AddEditBookmark
-            sites={appStateSites}
-            currentDetail={this.props.windowState.getIn(['bookmarkDetail', 'currentDetail'])}
-            originalDetail={this.props.windowState.getIn(['bookmarkDetail', 'originalDetail'])}
-            destinationDetail={this.props.windowState.getIn(['bookmarkDetail', 'destinationDetail'])}
-            shouldShowLocation={this.props.windowState.getIn(['bookmarkDetail', 'shouldShowLocation'])} />
+          ? <AddEditBookmarkHanger isModal />
           : null
         }
         {
           noScriptIsVisible
-            ? <NoScriptInfo frameProps={activeFrame}
+            ? <NoScriptInfo
+              frameProps={activeFrame}
               onHide={this.onHideNoScript} />
             : null
         }
@@ -847,27 +856,7 @@ class Main extends ImmutableComponent {
             : null
           }
         </div>
-        <TabsToolbar
-          paintTabs={getSetting(settings.PAINT_TABS)}
-          shouldAllowWindowDrag={shouldAllowWindowDrag}
-          dragData={this.props.appState.getIn(['dragData', 'type']) === dragTypes.TAB && this.props.appState.get('dragData')}
-          previewTabs={getSetting(settings.SHOW_TAB_PREVIEWS)}
-          tabsPerTabPage={tabsPerPage}
-          tabPageIndex={this.props.windowState.getIn(['ui', 'tabs', 'tabPageIndex'])}
-          previewTabPageIndex={this.props.windowState.getIn(['ui', 'tabs', 'previewTabPageIndex'])}
-          fixTabWidth={this.props.windowState.getIn(['ui', 'tabs', 'fixTabWidth'])}
-          frames={this.props.windowState.get('frames')}
-          sites={appStateSites}
-          key='tab-bar'
-          activeFrameKey={(activeFrame && activeFrame.get('key')) || undefined}
-          onMenu={this.onHamburgerMenu}
-          notificationBarActive={notificationBarOrigin}
-          hasTabInFullScreen={
-            sortedFrames
-              .map((frame) => frame.get('isFullScreen'))
-              .some(fullScreenMode => fullScreenMode === true)
-          }
-        />
+        <TabsToolbar key='tab-bar' />
         {
           hasNotifications && activeFrame
           ? <NotificationBar notifications={notifications} activeFrame={activeFrame} />
@@ -902,10 +891,7 @@ class Main extends ImmutableComponent {
       </div>
       {
         this.props.windowState.getIn(['ui', 'downloadsToolbar', 'isVisible']) && this.props.appState.get('downloads') && this.props.appState.get('downloads').size > 0
-        ? <DownloadsBar
-          windowWidth={window.innerWidth}
-          deleteConfirmationVisible={this.props.appState.get('deleteConfirmationVisible')}
-          downloads={this.props.appState.get('downloads')} />
+        ? <DownloadsBar />
         : null
       }
     </div>

@@ -5,19 +5,16 @@
 const React = require('react')
 const PropTypes = require('prop-types')
 const Immutable = require('immutable')
-const ipc = require('electron').ipcRenderer
 const urlParse = require('../../../common/urlParse')
 
 // Components
 const ImmutableComponent = require('../immutableComponent')
 const Dialog = require('../common/dialog')
-const Button = require('../common/button')
+const BrowserButton = require('../common/browserButton')
 
 // Actions
 const appActions = require('../../../../js/actions/appActions')
-
-// Constants
-const messages = require('../../../../js/constants/messages')
+const tabActions = require('../../../common/actions/tabActions')
 
 // Utils
 const siteUtil = require('../../../../js/state/siteUtil')
@@ -77,7 +74,7 @@ class NoScriptInfo extends ImmutableComponent {
   }
 
   reload () {
-    ipc.emit(messages.SHORTCUT_ACTIVE_FRAME_CLEAN_RELOAD)
+    tabActions.reload(this.props.frameProps.get('tabId'))
   }
 
   onAllow (setting, e) {
@@ -100,12 +97,10 @@ class NoScriptInfo extends ImmutableComponent {
 
   get buttons () {
     return <div>
-      <Button l10nId='allowScriptsOnce' className='actionButton'
-        onClick={this.onAllow.bind(this, 0)} />
+      <BrowserButton actionItem l10nId='allowScriptsOnce' onClick={this.onAllow.bind(this, 0)} />
       {this.isPrivate
         ? null
-        : <span><Button l10nId='allowScriptsTemp' className='subtleButton'
-          onClick={this.onAllow.bind(this, 1)} /></span>
+        : <BrowserButton subtleItem l10nId='allowScriptsTemp' onClick={this.onAllow.bind(this, 1)} />
       }
     </div>
   }

@@ -11,6 +11,7 @@ const {getWebContents} = require('../webContentsCache')
 const {BrowserWindow} = require('electron')
 const tabState = require('../../common/state/tabState')
 const windowState = require('../../common/state/windowState')
+const tabActions = require('../../common/actions/tabActions')
 const windowConstants = require('../../../js/constants/windowConstants')
 const windowActions = require('../../../js/actions/windowActions')
 const {makeImmutable} = require('../../common/state/immutableUtil')
@@ -47,7 +48,7 @@ const updateActiveTab = (state, closeTabId) => {
     case tabCloseAction.LAST_ACTIVE:
       nextTabId = tabState.getLastActiveTabId(state, windowId)
       break
-    default:
+    case tabCloseAction.PARENT:
       {
         const openerTabId = tabState.getOpenerTabId(state, closeTabId)
         const lastActiveTabId = tabState.getLastActiveTabId(state, windowId)
@@ -67,11 +68,6 @@ const updateActiveTab = (state, closeTabId) => {
     }
   }
 
-  // if we can't find anything else just pick the first tab
-  if (nextTabId === tabState.TAB_ID_NONE) {
-    nextTabId = tabState.getTabIdByIndex(state, windowId, 0, true)
-  }
-
   if (nextTabId !== tabState.TAB_ID_NONE) {
     setImmediate(() => {
       tabs.setActive(nextTabId)
@@ -82,6 +78,20 @@ const updateActiveTab = (state, closeTabId) => {
 const tabsReducer = (state, action, immutableAction) => {
   action = immutableAction || makeImmutable(action)
   switch (action.get('actionType')) {
+    case tabActions.didStartNavigation.name:
+    case tabActions.didFinishNavigation.name:
+      {
+        state = tabState.setNavigationState(state, action.get('tabId'), action.get('navigationState'))
+        break
+      }
+    case tabActions.reload.name:
+      {
+        const tabId = tabState.resolveTabId(state, action.get('tabId'))
+        setImmediate(() => {
+          tabs.reload(tabId, action.get('ignoreCache'))
+        })
+        break
+      }
     case appConstants.APP_SET_STATE:
       state = tabs.init(state, action)
       break
@@ -91,7 +101,7 @@ const tabsReducer = (state, action, immutableAction) => {
     case appConstants.APP_TAB_MOVED: {
       setImmediate(() => {
         const tabId = action.get('tabId')
-        const frameOpts = action.get('frameOpts')
+        const frameOpts = frameOptsFromFrame(action.get('frameOpts'))
         const browserOpts = action.get('browserOpts') || new Immutable.Map()
         const windowId = action.get('windowId') || -1
         tabs.moveTo(state, tabId, frameOpts, browserOpts, windowId)

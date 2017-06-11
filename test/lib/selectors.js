@@ -32,8 +32,8 @@ module.exports = {
   findBarInput: '.searchStringContainer input',
   findBarMatches: '.foundResults',
   findBarMatchCase: '#caseSensitivityCheckbox',
-  findBarNextButton: '.findButton.findNext',
-  findBarPrevButton: '.findButton.findPrev',
+  findBarNextButton: '[data-test-id="findBarNextButton"]',
+  findBarPrevButton: '[data-test-id="findBarPrevButton"]',
   findBarClearButton: '.findClear',
   braveMenu: '.braveMenu:not(.braveShieldsDisabled)',
   braveMenuDisabled: '.braveMenu.braveShieldsDisabled',
@@ -114,5 +114,16 @@ module.exports = {
   msgBoxSuppress: '[data-test-id^="msgBoxTab_"] .switchMiddle',
   msgBoxSuppressTrue: '[data-test-id^="msgBoxTab_"] .switchMiddle .switchBackground.switchedOn',
   msgBoxMessage: '[data-test-id="msgBoxMessage"]',
-  msgBoxTitle: '[data-test-id="msgBoxTitle"]'
+  msgBoxTitle: '[data-test-id="msgBoxTitle"]',
+
+  // download
+  downloadBar: '.downloadsBar',
+  downloadItem: '.downloadItem',
+  downloadPause: '[data-test-id="pauseButton"]',
+  downloadResume: '[data-test-id="resumeButton"]',
+  downloadCancel: '[data-test-id="cancelButton"]',
+  downloadReDownload: '[data-test-id="redownloadButton"]',
+  downloadDelete: '[data-test-id="deleteButton"]',
+  downloadDeleteConfirm: '[data-test-id="confirmDeleteButton"]',
+  downloadRemoveFromList: '[data-test-id="downloadRemoveFromList"]'
 }
