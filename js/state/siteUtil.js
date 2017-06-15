@@ -326,7 +326,8 @@ module.exports.addSite = function (state, siteDetail, tag, originalSiteDetail, s
   if (key === null) {
     return state
   }
-  state = state.setIn(['sites', key], site)
+
+  state = state.setIn(['sites', site.get('partitionNumber'), key], site)
   state = siteCache.addLocationSiteKey(state, location, key)
   return state
 }

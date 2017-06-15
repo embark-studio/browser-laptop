@@ -47,6 +47,9 @@ class Window extends React.Component {
     this.onAppStateChange = this.onAppStateChange.bind(this)
     windowStore.addChangeListener(this.onChange)
     appStoreRenderer.addChangeListener(this.onAppStateChange)
+    this.forcePartition = this.forcePartition.bind(this)
+    this.forcePartition()
+    window.cWindow = this
   }
 
   componentWillMount () {
@@ -85,10 +88,12 @@ class Window extends React.Component {
       classes['inactive'] = !this.windowState.getIn(['ui', 'isFocused'])
     }
 
-    return <div id='windowContainer' className={cx(classes)} >
-      <Main windowState={this.state.immutableData.windowState}
-        appState={this.state.immutableData.appState} />
-    </div>
+    return (
+      <div id='windowContainer' className={cx(classes)} >
+        <Main windowState={this.state.immutableData.windowState}
+          appState={this.state.immutableData.appState} />
+      </div>
+    )
   }
 
   componentDidMount () {
@@ -105,6 +110,7 @@ class Window extends React.Component {
   }
 
   onChange () {
+    this.forcePartition()
     setImmediate(() => {
       this.windowState = windowStore.getState()
       this.setState({
@@ -119,6 +125,7 @@ class Window extends React.Component {
   onAppStateChange () {
     setImmediate(() => {
       this.appState = appStoreRenderer.state
+      this.forcePartition()
       this.setState({
         immutableData: {
           windowState: this.windowState,
@@ -126,6 +133,12 @@ class Window extends React.Component {
         }
       })
     })
+  }
+
+  forcePartition () {
+    this.appState = this.appState.set('sites', this.appState.getIn(['sites', window.identity.ID]) || Immutable.Map())
+    this.appState = this.appState.setIn(['about', 'history', 'entries'], this.appState.getIn(['sites', window.identity.ID]) || Immutable.Map())
+    this.appState = this.appState.setIn(['about', 'newtab', 'sites'], this.appState.getIn(['sites', window.identity.ID]) || Immutable.Map())
   }
 }
 

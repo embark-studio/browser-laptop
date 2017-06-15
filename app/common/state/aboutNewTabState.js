@@ -122,6 +122,7 @@ const aboutNewTabState = {
 
     // return a filtered version of the sites array
     state = state.setIn(['about', 'newtab', 'sites'], getTopSites(state))
+    // state = state.setIn()
     return state.setIn(['about', 'newtab', 'updatedStamp'], new Date().getTime())
   }
 }

@@ -13,7 +13,8 @@ const aboutHistoryState = {
   setHistory: (state) => {
     state = makeImmutable(state)
     state = state.setIn(['about', 'history', 'entries'],
-      historyUtil.getHistory(state.get('sites')))
+      historyUtil.getHistory(state.get('sites'))
+    )
     return state.setIn(['about', 'history', 'updatedStamp'], new Date().getTime())
   }
 }

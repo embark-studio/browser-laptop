@@ -71,7 +71,8 @@ const updatePinnedTabs = (win) => {
   const state = appStore.getState()
   const windowId = win.id
   const pinnedSites = state.get('sites').toList().filter((site) =>
-    site.get('tags').includes(siteTags.PINNED)).map(site => getPinnedSiteProps(site))
+    site.get('tags') && site.get('tags').includes(siteTags.PINNED)
+  ).map(site => getPinnedSiteProps(site))
   const pinnedTabs = getPinnedTabsByWindowId(state, windowId)
 
   pinnedSites.filter((site) =>

@@ -453,6 +453,7 @@ const getMapListToElements = (urlLocationLower) => ({data, maxResults, type,
     sortHandler
 }) => {
   const suggestionsList = Immutable.List()
+  const formatPartitionNumber = (x) => typeof x === 'object' && x !== null ? x.get('partitionNumber') : x
   const formatTitle = (x) => typeof x === 'object' && x !== null ? x.get('title') : x
   const formatTabId = (x) => typeof x === 'object' && x !== null ? x.get('tabId') : x
   // Filter out things which are already in our own list at a smaller index
@@ -475,6 +476,7 @@ const getMapListToElements = (urlLocationLower) => ({data, maxResults, type,
       title: formatTitle(site),
       location: getURL(site),
       tabId: formatTabId(site),
+      partitionNumber: formatPartitionNumber(site),
       type
     }))
 }
@@ -635,7 +637,13 @@ const filterSuggestionListByType = (suggestionList) => {
   const searchSuggestions = []
   const topSiteSuggestions = []
 
-  suggestionList.forEach(item => {
+  suggestionList.filter((site) => {
+    if (window.identity) {
+      return site && site.get && (site.get('partitionNumber') === window.identity.ID)
+    } else {
+      return false
+    }
+  }).forEach(item => {
     switch (item.get('type')) {
       case suggestionTypes.BOOKMARK:
         bookmarkSuggestions.push(item)

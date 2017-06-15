@@ -35,6 +35,15 @@ const webtorrent = require('../../app/browser/webtorrent')
 const assert = require('assert')
 const profiles = require('../../app/browser/profiles')
 const {zoomLevel} = require('../../app/common/constants/toolbarUserInterfaceScale')
+/*****************************************************************
+ *****************************************************************
+ * START MIRAGE ID
+ *****************************************************************/
+const {initPartition} = require('../../app/filtering')
+/*****************************************************************
+ * END MIRAGE ID
+ *****************************************************************
+ *****************************************************************/
 
 // state helpers
 const {makeImmutable} = require('../../app/common/state/immutableUtil')
@@ -126,6 +135,7 @@ const createWindow = (action) => {
   const {identity} = browserOpts
   if (identity) {
     defaults.webPreferences.partition = `persist:partition-${identity.ID}`
+    initPartition(defaults.webPreferences.partition)
   }
   /**************************************************************
    * End Mirage ID

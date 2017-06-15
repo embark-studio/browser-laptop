@@ -17,7 +17,15 @@ const NavigationBar = require('./navigationBar')
 const LongPressButton = require('../common/longPressButton')
 const MenuBar = require('./menuBar')
 const WindowCaptionButtons = require('./windowCaptionButtons')
-const Button = require('../common/button')
+/********************************************************************
+ ********************************************************************
+ * START Mirage ID
+ ********************************************************************/
+// const Button = require('../common/button')
+/********************************************************************
+ * END Mirage ID
+ ********************************************************************
+ ********************************************************************/
 const BrowserAction = require('./browserAction')
 
 // State
@@ -257,6 +265,21 @@ class Navigator extends React.Component {
             </div>
           </div>
           <NavigationBar />
+          {
+            /********************************************************
+             ********************************************************
+             * START MIRAGE ID
+             ********************************************************/
+          }
+          <div>
+            {window.identity.Name}
+          </div>
+          {
+            /********************************************************
+             * END MIRAGE ID
+             ********************************************************
+             ********************************************************/
+          }
           <div className={cx({
             topLevelEndButtons: true,
             [css(styles.navigatorWrapper__topLevelEndButtons_isWideURLbarEnabled)]: this.props.isWideURLbarEnabled
@@ -271,35 +294,51 @@ class Navigator extends React.Component {
                 ? this.extensionButtons
                 : null
             }
-            <div className={css(styles.braveMenuContainer)}>
-              <Button iconClass='braveMenu'
-                l10nId='braveMenu'
-                testId='braveShieldButton'
-                test2Id={`shield-down-${this.props.shieldsDown}`}
-                className={cx({
-                  braveShieldsDisabled: !this.props.shieldEnabled,
-                  braveShieldsDown: this.props.shieldsDown,
-                  leftOfCaptionButton: this.props.isCaptionButton
-                })}
-                disabled={this.props.activeTabShowingMessageBox}
-                onClick={this.onBraveMenu}
-              />
-              {
-                this.props.isCounterEnabled
-                  ? <div className={css(
-                      styles.lionBadge,
-                      (this.props.menuBarVisible || !isWindows()) && styles.lionBadgeRight,
-                      // delay badge show-up.
-                      // this is also set for extension badge
-                      // in a way that both can appear at the same time.
-                      styles.subtleShowUp
-                    )}
-                    data-test-id='lionBadge'>
-                    {this.props.totalBlocks}
-                  </div>
-                  : null
-              }
-            </div>
+            {
+              /********************************************************
+               ********************************************************
+               * START MIRAGE ID
+               ********************************************************/
+            }
+            {
+              /******************************************************
+                <div className={css(styles.braveMenuContainer)}>
+                  <Button iconClass='braveMenu'
+                    l10nId='braveMenu'
+                    testId='braveShieldButton'
+                    test2Id={`shield-down-${this.props.shieldsDown}`}
+                    className={cx({
+                      braveShieldsDisabled: !this.props.shieldEnabled,
+                      braveShieldsDown: this.props.shieldsDown,
+                      leftOfCaptionButton: this.props.isCaptionButton
+                    })}
+                    disabled={this.props.activeTabShowingMessageBox}
+                    onClick={this.onBraveMenu}
+                  />
+                  {
+                    this.props.isCounterEnabled
+                      ? <div className={css(
+                          styles.lionBadge,
+                          (this.props.menuBarVisible || !isWindows()) && styles.lionBadgeRight,
+                          // delay badge show-up.
+                          // this is also set for extension badge
+                          // in a way that both can appear at the same time.
+                          styles.subtleShowUp
+                        )}
+                        data-test-id='lionBadge'>
+                        {this.props.totalBlocks}
+                      </div>
+                      : null
+                  }
+                </div>
+              ********************************************************/
+            }
+            {
+              /********************************************************
+               * END MIRAGE ID
+               ********************************************************
+               ********************************************************/
+            }
             {
               this.props.isCaptionButton
                 ? <span className='buttonSeparator' />

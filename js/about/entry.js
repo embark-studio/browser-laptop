@@ -107,5 +107,19 @@ if (element) {
       component.setState(detail)
     }
   })
+
+  /******************************************************
+   ******************************************************
+   * START MIRAGE ID
+   ******************************************************/
+  ipc.sendToHost('request-identity')
+
+  ipc.on('send-identity', function (_, identity) {
+    component.setState({identity})
+  })
+  /******************************************************
+   * START MIRAGE ID
+   ******************************************************
+   ******************************************************/
   ipc.send(ABOUT_COMPONENT_INITIALIZED)
 }

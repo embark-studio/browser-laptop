@@ -190,14 +190,15 @@ class Frame extends React.Component {
         let eventCallback = (e) => {
           this.webview.removeEventListener(e.type, eventCallback)
           this.runOnDomReady()
+          this.webview.send('send-identity', window.identity)
           delete this.runOnDomReady
         }
         this.webview.addEventListener('did-attach', eventCallback)
       }
 
+      this.webview.setAttribute('partition', frameStateUtil.getPartition(this.frame))
       if (!this.props.guestInstanceId || !this.webview.attachGuest(this.props.guestInstanceId)) {
         // The partition is guaranteed to be initialized by now by the browser process
-        this.webview.setAttribute('partition', frameStateUtil.getPartition(this.frame))
         this.webview.setAttribute('src', this.props.location)
       }
       domUtil.appendChild(this.webviewContainer, this.webview)
@@ -553,7 +554,11 @@ class Frame extends React.Component {
     })
     this.webview.addEventListener('ipc-message', (e) => {
       let method = () => {}
+
       switch (e.channel) {
+        case 'request-identity':
+          this.webview.send('send-identity', window.identity)
+          break
         case messages.GOT_CANVAS_FINGERPRINTING:
           if (this.frame.isEmpty()) {
             return
@@ -951,7 +956,7 @@ class Frame extends React.Component {
      *****************************************************************
      * Start Mirage ID
      *****************************************************************/
-    // props.guestInstanceId = frame.get('guestInstanceId')
+    props.guestInstanceId = frame.get('guestInstanceId')
     /*****************************************************************
      * End Mirage ID
      *****************************************************************

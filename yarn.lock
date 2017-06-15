@@ -343,6 +343,19 @@ asar@^0.12.0:
     mksnapshot "^0.3.0"
     tmp "0.0.28"
 
+asar@^0.13.0:
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/asar/-/asar-0.13.0.tgz#df33dd9d01bff842464d0d9f095740d4a62afb14"
+  dependencies:
+    chromium-pickle-js "^0.2.0"
+    commander "^2.9.0"
+    cuint "^0.2.1"
+    glob "^6.0.4"
+    minimatch "^3.0.3"
+    mkdirp "^0.5.0"
+    mksnapshot "^0.3.0"
+    tmp "0.0.28"
+
 asn1.js@^4.0.0:
   version "4.9.1"
   resolved "https://registry.yarnpkg.com/asn1.js/-/asn1.js-4.9.1.tgz#48ba240b45a9280e94748990ba597d216617fd40"
@@ -411,7 +424,7 @@ async@^0.9.0:
   version "0.9.2"
   resolved "https://registry.yarnpkg.com/async/-/async-0.9.2.tgz#aea74d5e61c1f899613bf64bda66d4c78f2fd17d"
 
-async@^2.0.0, async@^2.0.1, async@^2.1.4:
+async@^2.0.0, async@^2.0.1, async@^2.1.4, async@^2.1.5:
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/async/-/async-2.4.1.tgz#62a56b279c98a11d0987096a01cc3eeb8eb7bbd7"
   dependencies:
@@ -424,6 +437,10 @@ asynckit@^0.4.0:
 atob@~1.1.0:
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/atob/-/atob-1.1.3.tgz#95f13629b12c3a51a5d215abdce2aa9f32f80773"
+
+author-regex@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/author-regex/-/author-regex-1.0.0.tgz#d08885be6b9bbf9439fe087c76287245f0a81450"
 
 autoprefixer-core@^5.2.1:
   version "5.2.1"
@@ -3039,19 +3056,20 @@ electron-installer-debian@^0.3.0:
     word-wrap "^1.1.0"
     yargs "^4.1.0"
 
-electron-installer-redhat@^0.3.0:
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/electron-installer-redhat/-/electron-installer-redhat-0.3.1.tgz#f39bfafff512cb38027d66d756cc489254eef8f3"
+electron-installer-redhat@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/electron-installer-redhat/-/electron-installer-redhat-0.5.0.tgz#09699cd37bc911cf7ff99587ba77aa205e836cd2"
   dependencies:
-    asar "^0.12.0"
-    async "^2.0.0"
-    debug "^2.2.0"
-    fs-extra "^1.0.0"
-    glob "^7.0.0"
-    lodash "^4.0.1"
+    asar "^0.13.0"
+    async "^2.1.5"
+    debug "^2.6.3"
+    fs-extra "^2.1.2"
+    glob "^7.1.1"
+    lodash "^4.17.4"
+    parse-author "^2.0.0"
     temp "^0.8.3"
-    word-wrap "^1.1.0"
-    yargs "^6.0.0"
+    word-wrap "^1.2.1"
+    yargs "7.0.2"
 
 electron-localshortcut@^0.6.0:
   version "0.6.1"
@@ -3982,14 +4000,6 @@ fs-extra@^0.30.0:
     path-is-absolute "^1.0.0"
     rimraf "^2.2.8"
 
-fs-extra@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-1.0.0.tgz#cd3ce5f7e7cb6145883fcae3191e9877f8587950"
-  dependencies:
-    graceful-fs "^4.1.2"
-    jsonfile "^2.1.0"
-    klaw "^1.0.0"
-
 fs-extra@^2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-2.1.2.tgz#046c70163cef9aad46b0e4a7fa467fb22d71de35"
@@ -4257,7 +4267,7 @@ glob2base@^0.0.12:
   dependencies:
     find-index "^0.1.1"
 
-"glob@3 || 4 || 5 || 6 || 7", glob@^7.0.0, glob@^7.0.3, glob@^7.0.5, glob@^7.0.6:
+"glob@3 || 4 || 5 || 6 || 7", glob@^7.0.0, glob@^7.0.3, glob@^7.0.5, glob@^7.0.6, glob@^7.1.1:
   version "7.1.2"
   resolved "https://registry.yarnpkg.com/glob/-/glob-7.1.2.tgz#c19c9df9a028702d678612384a6552404c636d15"
   dependencies:
@@ -5587,14 +5597,14 @@ ledger-balance@^0.9.0:
     joi "^9.0.0-2"
     underscore "1.8.3"
 
-ledger-client@^0.9.17:
-  version "0.9.17"
-  resolved "https://registry.yarnpkg.com/ledger-client/-/ledger-client-0.9.17.tgz#c131d54add5dae787d8ccd0a2f6427a311b60da7"
+ledger-client@^0.9.18:
+  version "0.9.18"
+  resolved "https://registry.yarnpkg.com/ledger-client/-/ledger-client-0.9.18.tgz#68b19c901bac98bb5521398f3a8571dc7cc4f78b"
   dependencies:
     bitgo "^2.1.5"
     joi "^9.0.0-2"
     ledger-publisher "^0.9.4"
-    node-anonize2-relic-emscripten "^0.3.2"
+    node-anonize2-relic-emscripten "^0.3.3"
     random-lib "2.1.0"
     underscore "1.8.3"
     uuid "3.0.0"
@@ -6052,7 +6062,7 @@ lodash@^3.5.0:
   version "3.10.1"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
 
-lodash@^4.0.0, lodash@^4.0.1, lodash@^4.13.0, lodash@^4.14.0, lodash@^4.17.2, lodash@^4.2.0, lodash@^4.2.1, lodash@^4.3.0, lodash@^4.8.0:
+lodash@^4.0.0, lodash@^4.13.0, lodash@^4.14.0, lodash@^4.17.2, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.2.1, lodash@^4.3.0, lodash@^4.8.0:
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
@@ -6533,9 +6543,9 @@ node-abi@^2.0.0:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/node-abi/-/node-abi-2.0.2.tgz#00f3e0a58100eb480133b48c99a32cc1f9e6c93e"
 
-node-anonize2-relic-emscripten@^0.3.2:
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/node-anonize2-relic-emscripten/-/node-anonize2-relic-emscripten-0.3.2.tgz#5f6533df2b61fa54f4f4de3a5b5415d7cfe1453d"
+node-anonize2-relic-emscripten@^0.3.3:
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/node-anonize2-relic-emscripten/-/node-anonize2-relic-emscripten-0.3.3.tgz#77e2b8a5aad509d7f53978c394aa0f8ce55c4401"
   dependencies:
     underscore "1.8.3"
 
@@ -7121,6 +7131,12 @@ parse-asn1@^5.0.0:
     create-hash "^1.1.0"
     evp_bytestokey "^1.0.0"
     pbkdf2 "^3.0.3"
+
+parse-author@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/parse-author/-/parse-author-2.0.0.tgz#d3460bf1ddd0dfaeed42da754242e65fb684a81f"
+  dependencies:
+    author-regex "^1.0.0"
 
 parse-color@^1.0.0:
   version "1.0.0"
@@ -10391,7 +10407,7 @@ window-size@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/window-size/-/window-size-0.2.0.tgz#b4315bb4214a3d7058ebeee892e13fa24d98b075"
 
-word-wrap@^1.1.0:
+word-wrap@^1.1.0, word-wrap@^1.2.1:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/word-wrap/-/word-wrap-1.2.2.tgz#8fa78c3bda3e3138c7797fabceae709968814b41"
 
@@ -10520,9 +10536,9 @@ yargs-parser@^2.4.1:
     camelcase "^3.0.0"
     lodash.assign "^4.0.6"
 
-yargs-parser@^4.2.0:
-  version "4.2.1"
-  resolved "https://registry.yarnpkg.com/yargs-parser/-/yargs-parser-4.2.1.tgz#29cceac0dc4f03c6c87b4a9f217dd18c9f74871c"
+yargs-parser@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/yargs-parser/-/yargs-parser-5.0.0.tgz#275ecf0d7ffe05c77e64e7c86e4cd94bf0e1228a"
   dependencies:
     camelcase "^3.0.0"
 
@@ -10531,6 +10547,24 @@ yargs-parser@^7.0.0:
   resolved "https://registry.yarnpkg.com/yargs-parser/-/yargs-parser-7.0.0.tgz#8d0ac42f16ea55debd332caf4c4038b3e3f5dfd9"
   dependencies:
     camelcase "^4.1.0"
+
+yargs@7.0.2:
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/yargs/-/yargs-7.0.2.tgz#115b97df1321823e8b8648e8968c782521221f67"
+  dependencies:
+    camelcase "^3.0.0"
+    cliui "^3.2.0"
+    decamelize "^1.1.1"
+    get-caller-file "^1.0.1"
+    os-locale "^1.4.0"
+    read-pkg-up "^1.0.1"
+    require-directory "^2.1.1"
+    require-main-filename "^1.0.1"
+    set-blocking "^2.0.0"
+    string-width "^1.0.2"
+    which-module "^1.0.0"
+    y18n "^3.2.1"
+    yargs-parser "^5.0.0"
 
 yargs@^3.5.4, yargs@~3.10.0:
   version "3.10.0"
@@ -10559,24 +10593,6 @@ yargs@^4.1.0:
     window-size "^0.2.0"
     y18n "^3.2.1"
     yargs-parser "^2.4.1"
-
-yargs@^6.0.0:
-  version "6.6.0"
-  resolved "https://registry.yarnpkg.com/yargs/-/yargs-6.6.0.tgz#782ec21ef403345f830a808ca3d513af56065208"
-  dependencies:
-    camelcase "^3.0.0"
-    cliui "^3.2.0"
-    decamelize "^1.1.1"
-    get-caller-file "^1.0.1"
-    os-locale "^1.4.0"
-    read-pkg-up "^1.0.1"
-    require-directory "^2.1.1"
-    require-main-filename "^1.0.1"
-    set-blocking "^2.0.0"
-    string-width "^1.0.2"
-    which-module "^1.0.0"
-    y18n "^3.2.1"
-    yargs-parser "^4.2.0"
 
 yargs@^8.0.1:
   version "8.0.1"

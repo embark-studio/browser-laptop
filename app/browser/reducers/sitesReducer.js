@@ -62,6 +62,7 @@ const sitesReducer = (state, action, immutableAction) => {
         if (!action.siteDetail.get('folderId') && siteUtil.isFolder(action.siteDetail)) {
           action.siteDetail = action.siteDetail.set('folderId', siteUtil.getNextFolderId(sites))
         }
+
         state = siteUtil.addSite(state, action.siteDetail, action.tag, action.originalSiteDetail, action.skipSync)
         if (action.destinationDetail) {
           const sourceKey = siteUtil.getSiteKey(action.siteDetail)

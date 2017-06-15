@@ -81,7 +81,7 @@ class HistoryDay extends ImmutableComponent {
       <SortableTable headings={['time', 'title', 'domain']}
         defaultHeading='time'
         defaultHeadingSortOrder='desc'
-        rows={this.props.entries.map((entry) => [
+        rows={this.props.entries.filter((entry) => (entry.get('partitionNumber') === this.props.identity.ID)).map((entry) => [
           {
             cell: <HistoryTimeCell siteDetail={entry} />,
             value: entry.get('lastAccessedTime')
@@ -121,6 +121,7 @@ class GroupedHistoryList extends React.Component {
             totalEntries={totalEntries}
             tableID={index++}
             stateOwner={this.props.stateOwner}
+            identity={this.props.identity}
           />)
       }
     </list>
@@ -237,6 +238,7 @@ class AboutHistory extends React.Component {
             ? this.searchedSiteDetails(this.state.search, this.state.history)
             : this.state.history
           }
+          identity={this.state.identity}
           stateOwner={this} />
       </div>
     </div>

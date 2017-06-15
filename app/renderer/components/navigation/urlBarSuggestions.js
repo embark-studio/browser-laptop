@@ -72,6 +72,7 @@ class UrlBarSuggestions extends React.Component {
   mergeProps (state, ownProps) {
     const currentWindow = state.get('currentWindow')
     const activeFrame = frameStateUtil.getActiveFrame(currentWindow) || Immutable.Map()
+
     const urlBar = activeFrame.getIn(['navbar', 'urlbar'], Immutable.Map())
     const documentHeight = Number.parseInt(
       window.getComputedStyle(document.querySelector(':root')).getPropertyValue('--navbar-height'), 10
